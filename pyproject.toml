@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "alpa"
+version = "0.1.0"
+description = "Integration tool with Fedora Alternative Packaging repository"
+authors = ["Jiri Kyjovsky <j1.kyjovsky@gmail.com>"]
+maintainers = ["Jiří Kyjovský <j1.kyjovsky@gmail.com>"]
+license = "GPLv3"
+readme = "README.md"
+homepage = "https://github.com/fedora-alternative-packaging/alpa"
+repository = "https://github.com/fedora-alternative-packaging/alpa"
+exclude = ["test/"]
+
+
+[tool.poetry.dependencies]
+python = "^3.8"
+click = ">=8.0.0"
+gitpython = ">=3.0"
+pygithub = ">=1.57"
+
+
+[tool.poetry.dev-dependencies]
+pytest = ">=7.0.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+
+[tool.poetry.scripts]
+alpa = "alpa.cli:alpa"
