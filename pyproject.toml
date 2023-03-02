@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "alpa"
 version = "0.1.0"
-description = "Integration tool with Fedora Alternative Packaging repository"
+description = "Integration tool with Alternative Packaging repository"
 authors = ["Jiri Kyjovsky <j1.kyjovsky@gmail.com>"]
 maintainers = ["Jiří Kyjovský <j1.kyjovsky@gmail.com>"]
 license = "GPLv3"
 readme = "README.md"
-homepage = "https://github.com/fedora-alternative-packaging/alpa"
-repository = "https://github.com/fedora-alternative-packaging/alpa"
+homepage = "https://github.com/alternative-packaging/alpa"
+repository = "https://github.com/alternative-packaging/alpa"
 exclude = ["test/"]
 
 
@@ -28,4 +28,4 @@ build-backend = "poetry.core.masonry.api"
 
 
 [tool.poetry.scripts]
-alpa = "alpa.cli:alpa"
+alpa = "alpa.cli.base:entry_point"
