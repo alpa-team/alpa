@@ -6,8 +6,8 @@ authors = ["Jiri Kyjovsky <j1.kyjovsky@gmail.com>"]
 maintainers = ["Jiří Kyjovský <j1.kyjovsky@gmail.com>"]
 license = "GPLv3"
 readme = "README.md"
-homepage = "https://github.com/alternative-packaging/alpa"
-repository = "https://github.com/alternative-packaging/alpa"
+homepage = "https://github.com/alpa-team/alpa"
+repository = "https://github.com/alpa-team/alpa"
 exclude = ["test/"]
 
 
