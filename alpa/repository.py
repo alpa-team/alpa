@@ -1,5 +1,5 @@
 """
-Set of commands that helps with integration of Alternative Packaging
+Set of commands that helps with integration of Alpa
 repository.
 """
 from os import getcwd, environ
@@ -97,6 +97,8 @@ class LocalRepo:
         for remote in self.local_repo.remotes:
             if remote.name == ORIGIN_NAME:
                 return remote.url.split(":")[-1].rstrip(".git")
+
+        return ""
 
 
 class AlpaRepo(LocalRepo):

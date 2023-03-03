@@ -36,7 +36,7 @@ def genspec(lang: str, test: bool) -> None:
 @base.command("clone")
 @click.argument("url", type=str)
 def clone(url: str) -> None:
-    """Clone and prepare Alternative Packaging repository"""
+    """Clone and prepare Alpa repository"""
     AlpaRepo.clone(url)
 
 

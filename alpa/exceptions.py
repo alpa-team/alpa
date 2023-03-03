@@ -1,6 +1,6 @@
-class FAPException(Exception):
+class AlpaException(Exception):
     """
-    Base Fedora Alternative Packaging exception. Use its subclasses instead.
+    Base Alpa exception. Use its subclasses instead.
     """
 
     pass
