@@ -63,8 +63,12 @@ class GithubRepo:
     def create_issue(self, title: str, body: str) -> Issue:
         return self.get_root_repo()._repo.create_issue(title, body)
 
-    def create_pr(self, title: str, body: str, source_branch: str, target_branch: str = "main") -> PullRequest:
-        return self.get_root_repo()._repo.create_pull(title, body, base=target_branch, head=source_branch)
+    def create_pr(
+        self, title: str, body: str, source_branch: str, target_branch: str = "main"
+    ) -> PullRequest:
+        return self.get_root_repo()._repo.create_pull(
+            title, body, base=target_branch, head=source_branch
+        )
 
 
 class GithubAPI:
