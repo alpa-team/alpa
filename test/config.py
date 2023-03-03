@@ -1,0 +1,2 @@
+class FakeAlpaRepo:
+    pass

@@ -6,7 +6,7 @@ Integration with GitHub API.
 from os import getenv
 from typing import Optional
 from click import UsageError
-from github import Github, Issue
+from github import Github, Issue, PullRequest
 
 from alpa.constants import GH_API_TOKEN_NAME, GH_WRITE_ACCESS
 from alpa.messages import NO_GH_API_KEY_FOUND
@@ -53,11 +53,22 @@ class GithubRepo:
         namespace, repo_name = self._repo.source.full_name.split("/")
         return GithubRepo(self._api, namespace, repo_name)
 
-    def create_issue(self, title: str, body: str) -> Issue:
-        pass
+    def get_root_repo(self) -> "GithubRepo":
+        root_repo = self.get_upstream()
+        if root_repo is None:
+            root_repo = self
 
-    def create_pr(self, title: str, body: str, default_branch: str = "") -> None:
-        pass
+        return root_repo
+
+    def create_issue(self, title: str, body: str) -> Issue:
+        return self.get_root_repo()._repo.create_issue(title, body)
+
+    def create_pr(
+        self, title: str, body: str, source_branch: str, target_branch: str = "main"
+    ) -> PullRequest:
+        return self.get_root_repo()._repo.create_pull(
+            title, body, base=target_branch, head=source_branch
+        )
 
 
 class GithubAPI:
@@ -66,7 +77,7 @@ class GithubAPI:
 
     @property
     def gh_user(self) -> str:
-        return self._gh_api.get_user
+        return self._gh_api.get_user().login
 
     @staticmethod
     def _get_access_token() -> str:

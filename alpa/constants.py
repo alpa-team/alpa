@@ -6,12 +6,12 @@ ORIGIN_NAME = "origin"
 MAIN_BRANCH = "main"
 
 
-GH_API_TOKEN_NAME = "FAP_GH_API_TOKEN"
+GH_API_TOKEN_NAME = "ALPA_GH_API_TOKEN"
 GH_WRITE_ACCESS = ["admin", "write"]
 
-FAP_ISSUE_REPO_NAME = "issue-repo"
-FAP_FEAT_BRANCH_PREFIX = "__feat_"
-FAP_FEAT_BRANCH = FAP_FEAT_BRANCH_PREFIX + "{pkgname}"
+ALPA_ISSUE_REPO_NAME = "issue-repo"
+ALPA_FEAT_BRANCH_PREFIX = "__feat_"
+ALPA_FEAT_BRANCH = ALPA_FEAT_BRANCH_PREFIX + "{pkgname}"
 
 
 class PackageRequest(str, Enum):

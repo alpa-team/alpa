@@ -16,16 +16,16 @@ enter-image:
 
 
 check-tests:
-	poetry shell
+	poetry shell && pytest -vvv test/
 
 
 check-install:
 	$(CONTAINER_ENGINE) run -ti $(IMAGE_NAME) \
-		bash -c "pip install .; alpa --help"
+		bash -c "pip install . && alpa --help"
 
 
 check: check-install check-tests
 
 
-container-ckeck: build-image
+container-check: build-image
 	$(CONTAINER_ENGINE) run -ti $(IMAGE_NAME) make check
