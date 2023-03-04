@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "alpa"
+name = "pyalpa"
 version = "0.1.0"
 description = "Integration tool with Alpa repository"
 authors = ["Jiri Kyjovsky <j1.kyjovsky@gmail.com>"]
