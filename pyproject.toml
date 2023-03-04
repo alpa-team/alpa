@@ -9,6 +9,7 @@ readme = "README.md"
 homepage = "https://github.com/alpa-team/alpa"
 repository = "https://github.com/alpa-team/alpa"
 exclude = ["test/"]
+packages = [{ include = "alpa" }]
 
 
 [tool.poetry.dependencies]
