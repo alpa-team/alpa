@@ -40,7 +40,7 @@ BuildRequires:  python3-GitPython
 %files -n %{name} -f %{pyproject_files}
 %license LICENSE
 %doc README.md
-%{_bindir}/alpa
+%{_bindir}/%{name}
 
 
 %changelog
