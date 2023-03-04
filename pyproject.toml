@@ -15,7 +15,7 @@ exclude = ["test/"]
 python = "^3.8"
 click = ">=8.0.0"
 gitpython = ">=3.0"
-pygithub = ">=1.57"
+pygithub = ">=1.4"
 
 
 [tool.poetry.dev-dependencies]
