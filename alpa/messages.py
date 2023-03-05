@@ -27,3 +27,8 @@ NOT_IN_PREDEFINED_STATE = (
     "was playing with it. Please see TODO LINK to return this repo "
     "back to its predefined state."
 )
+
+RETURNING_CLONE_URL_MSG = (
+    "User {user} does not have access to {repo} repository. "
+    "Using https url for cloning instead of ssh url."
+)

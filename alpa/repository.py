@@ -137,8 +137,7 @@ class AlpaRepo(LocalRepo):
 
     @staticmethod
     def _prepare_cloned_repo(local_repo: Repo, gh_repo: GithubRepo) -> None:
-        # tady je potreba to neudelat v self
-        Remote.create(local_repo, UPSTREAM_NAME, gh_repo.upstream_url)
+        Remote.create(local_repo, UPSTREAM_NAME, gh_repo.upstream_clone_url)
 
     @staticmethod
     def _get_repo_name_from_url(repo_url: str) -> str:
