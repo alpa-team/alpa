@@ -90,7 +90,7 @@ def pull(ctx) -> None:
 @local_repo.command("list")
 @click.option("-p", "--pattern", type=str, default="", help="Optional pattern to match")
 @pass_context
-def list(ctx, regex: str) -> None:
+def list(ctx, pattern: str) -> None:
     """List all packages or packages matching regex"""
-    for pkg in ctx.obj.get_packages(regex):
+    for pkg in ctx.obj.get_packages(pattern):
         click.echo(pkg)
