@@ -155,5 +155,7 @@ class AlpaRepo(LocalRepo):
         if not gh_repo.is_fork():
             raise UsageError(CLONED_REPO_IS_NOT_FORK)
 
-        cloned_repo = Repo.clone_from(url, getcwd() + cls._get_repo_name_from_url(url))
+        cloned_repo = Repo.clone_from(
+            url, f"{getcwd()}/{cls._get_repo_name_from_url(url)}"
+        )
         cls._prepare_cloned_repo(cloned_repo, gh_repo)
