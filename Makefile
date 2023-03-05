@@ -7,12 +7,8 @@ build-image:
 	$(CONTAINER_ENGINE) build --rm --tag $(IMAGE_NAME) -f Containerfile
 
 
-enter-new-image: build-image
-	$(CONTAINER_ENGINE) run -ti $(IMAGE_NAME) bash
-
-
 enter-image:
-	$(CONTAINER_ENGINE) run -ti $(IMAGE_NAME) bash
+	$(CONTAINER_ENGINE) run -v .:/alpa/alpa_bind:Z -ti $(IMAGE_NAME) bash
 
 
 check-tests:
