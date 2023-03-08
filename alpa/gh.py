@@ -47,7 +47,7 @@ class GithubRepo:
 
     def has_write_access(self, user: str) -> bool:
         for collaborator in self._repo.get_collaborators():
-            if collaborator != user:
+            if collaborator.login != user:
                 continue
 
             return (
