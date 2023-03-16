@@ -108,4 +108,4 @@ def list(pattern: str) -> None:
 )
 def genspec(lang: str, test: bool) -> None:
     """This command uses some existing spec file generators for you"""
-    pass
+    raise NotImplementedError("Not implemented yet (1.0 goal)")

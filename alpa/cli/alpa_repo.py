@@ -25,11 +25,11 @@ def create(name: str) -> None:
 @pkg_name
 def delete(name: str) -> None:
     """Delete existing package"""
-    pass
+    raise NotImplementedError("Not implemented yet (1.0 goal)")
 
 
 @click.command("request-package")
 @pkg_name
 def request_package(name: str) -> None:
     """Request new branch for new package in upstream"""
-    AlpaRepo(Path(getcwd())).request_package(name)
+    raise NotImplementedError("Not implemented yet (1.0 goal)")
