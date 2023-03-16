@@ -128,7 +128,7 @@ class LocalRepo:
         click.echo(self.git_cmd.pull(ORIGIN_NAME, branch))
 
     def push(self, branch: str) -> None:
-        click.echo(self.git_cmd.push(ORIGIN_NAME, f"{self.branch}:{branch}"))
+        click.echo(self.git_cmd.push(ORIGIN_NAME, branch))
 
     def _get_full_reponame(self) -> str:
         for remote in self.local_repo.remotes:

@@ -9,8 +9,7 @@ from pathlib import Path
 import click
 from click import ClickException, Choice
 
-from alpa.repository import LocalRepo
-
+from alpa.repository import LocalRepo, AlpaRepo
 
 pkg_name = click.argument("name", type=str)
 
@@ -68,11 +67,22 @@ def commit(message: str) -> None:
 )
 def push(pull_request: bool) -> None:
     """Pushes your commited changes to the upstream so you can make PR"""
-    local_repo = LocalRepo(Path(getcwd()))
-    local_repo.push(local_repo.package)
+    repo_path = Path(getcwd())
+    local_repo = LocalRepo(repo_path)
+    local_repo.push(local_repo.branch)
 
-    if pull_request:
-        local_repo.gh_repo.create_pr()
+    if not pull_request:
+        return
+
+    alpa = AlpaRepo(repo_path)
+    pr = alpa.gh_repo.create_pr(
+        title=f"[alpa-cli] Create update of package {local_repo.package}",
+        # TODO this should provide at least some short descriptive message
+        body="",
+        source_branch=f"{alpa.gh_api.gh_user}:{local_repo.feat_branch}",
+        target_branch=local_repo.package,
+    )
+    click.echo(f"PR#{pr.id} created. URL: {pr.url}")
 
 
 @click.command("pull")
