@@ -125,7 +125,7 @@ class LocalRepo:
             index.commit(self._get_message_from_editor())
 
     def pull(self, branch: str) -> None:
-        click.echo(self.git_cmd.pull(ORIGIN_NAME, branch))
+        click.echo(self.git_cmd.pull(UPSTREAM_NAME, branch))
 
     def push(self, branch: str) -> None:
         click.echo(self.git_cmd.push(ORIGIN_NAME, branch))
