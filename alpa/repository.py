@@ -12,7 +12,7 @@ from urllib.parse import urlparse
 
 from click import UsageError, ClickException
 import click
-from git import Repo, Remote
+from git import Repo, Remote, GitCommandError
 from alpa.constants import (
     ALPA_FEAT_BRANCH,
     ALPA_FEAT_BRANCH_PREFIX,
@@ -111,10 +111,10 @@ class LocalRepo:
             index.commit(self._get_message_from_editor())
 
     def pull(self, branch: str) -> None:
-        self.git_cmd.pull(ORIGIN_NAME, branch)
+        click.echo(self.git_cmd.pull(ORIGIN_NAME, branch))
 
     def push(self, branch: str) -> None:
-        self.git_cmd.push(ORIGIN_NAME, f"{self.branch}:{branch}")
+        click.echo(self.git_cmd.push(ORIGIN_NAME, f"{self.branch}:{branch}"))
 
     def _get_full_reponame(self) -> str:
         for remote in self.local_repo.remotes:
@@ -140,6 +140,7 @@ class AlpaRepo(LocalRepo):
         self.git_cmd.switch(MAIN_BRANCH)
         self.git_cmd.switch("-c", package)
         self.push(package)
+        click.echo(f"Package {package} created")
 
     def request_package(self, package_name: str) -> None:
         upstream = self.gh_repo.get_root_repo()
