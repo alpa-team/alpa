@@ -146,6 +146,10 @@ class AlpaRepo(LocalRepo):
         namespace, repo_name = self._get_full_reponame().split("/")
         self.gh_repo = self.gh_api.get_repo(namespace, repo_name)
 
+    def _create_packit_config(self):
+        # TODO
+        pass
+
     def create_package(self, package: str) -> None:
         upstream = self.gh_repo.get_upstream()
         if upstream and not upstream.has_write_access(self.gh_api.gh_user):
@@ -153,7 +157,8 @@ class AlpaRepo(LocalRepo):
 
         self.git_cmd.switch(MAIN_BRANCH)
         self.git_cmd.switch("-c", package)
-        self.push(package)
+        self.git_cmd.push(UPSTREAM_NAME, package)
+        self._create_packit_config()
         click.echo(f"Package {package} created")
 
     def request_package(self, package_name: str) -> None:
