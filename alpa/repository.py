@@ -122,7 +122,6 @@ class LocalRepo:
     def commit(self, message: str) -> None:
         self._ensure_feature_branch()
         index = self.local_repo.index
-        index.add("*")
         if message:
             index.commit(message)
         else:
@@ -130,6 +129,7 @@ class LocalRepo:
 
     def add(self, files: List[str]) -> None:
         self._ensure_feature_branch()
+        # FIXME: alpa add . acts weird
         self.git_cmd.add(files)
 
     def pull(self, branch: str) -> None:
