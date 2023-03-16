@@ -50,6 +50,10 @@ class LocalRepo:
     def package(self) -> str:
         return self.branch.lstrip(ALPA_FEAT_BRANCH_PREFIX)
 
+    @property
+    def feat_branch(self) -> str:
+        return ALPA_FEAT_BRANCH.format(pkgname=self.package)
+
     def show_remote_branches(self, remote: str) -> List[str]:
         lines = [
             line.strip()
@@ -111,7 +115,7 @@ class LocalRepo:
     def commit(self, message: str) -> None:
         if self.branch == self.package:
             click.echo("Switching to feature branch")
-            self.git_cmd.switch("-c", ALPA_FEAT_BRANCH.format(pkgname=self.package))
+            self.git_cmd.switch("-c", self.feat_branch)
 
         index = self.local_repo.index
         index.add("*")
