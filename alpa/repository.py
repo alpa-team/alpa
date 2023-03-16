@@ -112,17 +112,25 @@ class LocalRepo:
 
             return output
 
-    def commit(self, message: str) -> None:
-        if self.branch == self.package:
-            click.echo("Switching to feature branch")
-            self.git_cmd.switch("-c", self.feat_branch)
+    def _ensure_feature_branch(self) -> None:
+        if self.branch != self.package:
+            return None
 
+        click.echo("Switching to feature branch")
+        self.git_cmd.switch("-c", self.feat_branch)
+
+    def commit(self, message: str) -> None:
+        self._ensure_feature_branch()
         index = self.local_repo.index
         index.add("*")
         if message:
             index.commit(message)
         else:
             index.commit(self._get_message_from_editor())
+
+    def add(self, files: List[str]) -> None:
+        self._ensure_feature_branch()
+        self.git_cmd.add(files)
 
     def pull(self, branch: str) -> None:
         click.echo(self.git_cmd.pull(UPSTREAM_NAME, branch))

@@ -1,7 +1,16 @@
 import click
 
 from alpa.cli.alpa_repo import create, delete, request_package
-from alpa.cli.local_repo import show_history, switch, commit, pull, push, list, genspec
+from alpa.cli.local_repo import (
+    show_history,
+    switch,
+    commit,
+    pull,
+    push,
+    list,
+    genspec,
+    add,
+)
 from alpa.repository import AlpaRepo
 
 
@@ -31,6 +40,7 @@ entry_point.add_command(pull)
 entry_point.add_command(push)
 entry_point.add_command(list)
 entry_point.add_command(genspec)
+entry_point.add_command(add)
 
 
 if __name__ == "__main__":

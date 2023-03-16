@@ -5,6 +5,7 @@ These commands need to create LocalRepo -> no GH token required
 
 from os import getcwd
 from pathlib import Path
+from typing import List
 
 import click
 from click import ClickException, Choice
@@ -54,6 +55,13 @@ def commit(message: str) -> None:
         raise ClickException("Message longer than 80 characters")
 
     LocalRepo(Path(getcwd())).commit(message)
+
+
+@click.command("add")
+@click.argument("files", type=str, nargs=-1, required=True)
+def add(files: List[str]) -> None:
+    """Add files to git history. Basically calls `git add <input>`"""
+    LocalRepo(Path(getcwd())).add(files)
 
 
 @click.command("push")
