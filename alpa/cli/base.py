@@ -1,46 +1,46 @@
 import click
 
-from click import Choice
-
-from alpa.cli.alpa_repo import alpa_repo
-from alpa.cli.local_repo import local_repo
+from alpa.cli.alpa_repo import create, delete, request_package
+from alpa.cli.local_repo import (
+    show_history,
+    switch,
+    commit,
+    pull,
+    push,
+    list,
+    genspec,
+    add,
+)
 from alpa.repository import AlpaRepo
 
 
 @click.group()
-def base() -> None:
+def entry_point() -> None:
     pass
 
 
-@base.command("genspec")
-@click.option(
-    "--lang",
-    type=Choice(["python", "java"], case_sensitive=False),
-    required=True,
-    help="Choose the prohramming language for which the generator is designed",
-)
-@click.option(
-    "-t",
-    "--test",
-    default=False,
-    help=(
-        "Send package with generated spec file to "
-        "packit to test whether build will succeed."
-    ),
-)
-def genspec(lang: str, test: bool) -> None:
-    """This command uses some existing spec file generators for you"""
-    pass
+# commands that don't require git repo at all
 
 
-@base.command("clone")
+@entry_point.command("clone")
 @click.argument("url", type=str)
 def clone(url: str) -> None:
     """Clone and prepare Alpa repository"""
     AlpaRepo.clone(url)
 
 
-entry_point = click.CommandCollection(sources=[base, alpa_repo, local_repo])
+entry_point.add_command(create)
+entry_point.add_command(delete)
+entry_point.add_command(request_package)
+
+entry_point.add_command(show_history)
+entry_point.add_command(switch)
+entry_point.add_command(commit)
+entry_point.add_command(pull)
+entry_point.add_command(push)
+entry_point.add_command(list)
+entry_point.add_command(genspec)
+entry_point.add_command(add)
 
 
 if __name__ == "__main__":

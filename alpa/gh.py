@@ -5,11 +5,13 @@ Integration with GitHub API.
 
 from os import getenv
 from typing import Optional
+
+import click
 from click import UsageError
 from github import Github, Issue, PullRequest
 
 from alpa.constants import GH_API_TOKEN_NAME, GH_WRITE_ACCESS
-from alpa.messages import NO_GH_API_KEY_FOUND
+from alpa.messages import NO_GH_API_KEY_FOUND, RETURNING_CLONE_URL_MSG
 
 
 class GithubRepo:
@@ -21,23 +23,31 @@ class GithubRepo:
         self._repo = api.get_repo(f"{namespace}/{repo_name}")
 
     @property
-    def url(self) -> str:
-        return self._repo.url
+    def clone_url(self) -> str:
+        if self.has_write_access(self._api.get_user().login):
+            return self._repo.ssh_url
+
+        click.echo(
+            RETURNING_CLONE_URL_MSG.format(
+                user=self._api.get_user().login, repo=self._repo.full_name
+            )
+        )
+        return self._repo.clone_url
 
     @property
-    def upstream_url(self) -> Optional[str]:
+    def upstream_clone_url(self) -> Optional[str]:
         upstream = self.get_upstream()
         if upstream is None:
             return None
 
-        return upstream.url
+        return upstream.clone_url
 
     def is_fork(self) -> bool:
         return self._repo.fork
 
     def has_write_access(self, user: str) -> bool:
         for collaborator in self._repo.get_collaborators():
-            if collaborator != user:
+            if collaborator.login != user:
                 continue
 
             return (

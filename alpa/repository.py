@@ -12,7 +12,7 @@ from urllib.parse import urlparse
 
 from click import UsageError, ClickException
 import click
-from git import Repo, Remote
+from git import Repo, Remote, GitCommandError
 from alpa.constants import (
     ALPA_FEAT_BRANCH,
     ALPA_FEAT_BRANCH_PREFIX,
@@ -39,30 +39,67 @@ class LocalRepo:
             raise ClickException(NOT_IN_PREDEFINED_STATE)
 
     @property
-    def branch(self) -> str:
+    def remote_associated_with_current_branch(self) -> str:
         return self.local_repo.active_branch.tracking_branch().remote_name
+
+    @property
+    def branch(self) -> str:
+        return self.local_repo.active_branch.name
 
     @property
     def package(self) -> str:
         return self.branch.lstrip(ALPA_FEAT_BRANCH_PREFIX)
 
+    @property
+    def feat_branch(self) -> str:
+        return ALPA_FEAT_BRANCH.format(pkgname=self.package)
+
+    def show_remote_branches(self, remote: str) -> List[str]:
+        lines = [
+            line.strip()
+            for line in self.git_cmd.remote("--verbose", "show", remote).split("\n")
+        ]
+        if "Remote branches:" not in lines:
+            return []
+
+        start = lines.index("Remote branches:")
+
+        if "Local branch configured for 'git pull':" in lines:
+            end = lines.index("Local branch configured for 'git pull':")
+        elif "Local ref configured for 'git push':" in lines:
+            end = lines.index("Local ref configured for 'git push':")
+        else:
+            end = len(lines)
+
+        lines_with_remote_branches = lines[start + 1 : end]
+        return [line.split()[0] for line in lines_with_remote_branches]
+
     def get_packages(self, regex: str) -> List[str]:
-        remote_refs = self.local_repo.remote(name=UPSTREAM_NAME).refs
+        # self.local_repo.remote(name=UPSTREAM_NAME).refs don't work on every case
+        refs_without_main = filter(
+            lambda ref: ref != "main", self.show_remote_branches(UPSTREAM_NAME)
+        )
         if regex == "":
-            return [pkg.name for pkg in remote_refs]
+            return list(refs_without_main)
 
         pattern = re.compile(regex)
-        return [pkg.name for pkg in remote_refs if pattern.match(pkg)]
+        return [ref for ref in refs_without_main if pattern.match(ref)]
 
     def _is_repo_in_predefined_state(self) -> bool:
         remotes_name_set = {remote.name for remote in self.local_repo.remotes}
         return remotes_name_set == {ORIGIN_NAME, UPSTREAM_NAME}
 
     def switch_to_package(self, package: str) -> None:
-        self.git_cmd.switch(package)
+        try:
+            click.echo(self.git_cmd.switch(package))
+        except GitCommandError:
+            # switching to the package for the first time
+            click.echo(f"Switching to the package {package} for the first time")
+            click.echo(self.git_cmd.fetch(UPSTREAM_NAME, package))
+            click.echo(self.git_cmd.switch(package))
 
-    def get_history_of_branch(self, branch: str, *params: List[str]) -> None:
-        return self.git_cmd.log("--all", "--decorate", "--graph", *params, branch)
+    def get_history_of_branch(self, branch: str, *params: List[str]) -> str:
+        return self.git_cmd.log("--decorate", "--graph", *params, branch)
 
     @staticmethod
     def _get_message_from_editor() -> str:
@@ -75,23 +112,31 @@ class LocalRepo:
 
             return output
 
-    def commit(self, message: str) -> None:
-        if self.branch == self.package:
-            click.echo("Switching to feature branch")
-            self.git_cmd.switch("-c", ALPA_FEAT_BRANCH.format(pkgname=self.package))
+    def _ensure_feature_branch(self) -> None:
+        if self.branch != self.package:
+            return None
 
+        click.echo("Switching to feature branch")
+        self.git_cmd.switch("-c", self.feat_branch)
+
+    def commit(self, message: str) -> None:
+        self._ensure_feature_branch()
         index = self.local_repo.index
-        index.add("*")
         if message:
             index.commit(message)
         else:
             index.commit(self._get_message_from_editor())
 
+    def add(self, files: List[str]) -> None:
+        self._ensure_feature_branch()
+        # FIXME: alpa add . acts weird
+        self.git_cmd.add(files)
+
     def pull(self, branch: str) -> None:
-        self.git_cmd.pull(ORIGIN_NAME, branch)
+        click.echo(self.git_cmd.pull(UPSTREAM_NAME, branch))
 
     def push(self, branch: str) -> None:
-        self.git_cmd.push(ORIGIN_NAME, f"{self.branch}:{branch}")
+        click.echo(self.git_cmd.push(ORIGIN_NAME, branch))
 
     def _get_full_reponame(self) -> str:
         for remote in self.local_repo.remotes:
@@ -109,6 +154,10 @@ class AlpaRepo(LocalRepo):
         namespace, repo_name = self._get_full_reponame().split("/")
         self.gh_repo = self.gh_api.get_repo(namespace, repo_name)
 
+    def _create_packit_config(self):
+        # TODO
+        pass
+
     def create_package(self, package: str) -> None:
         upstream = self.gh_repo.get_upstream()
         if upstream and not upstream.has_write_access(self.gh_api.gh_user):
@@ -116,7 +165,9 @@ class AlpaRepo(LocalRepo):
 
         self.git_cmd.switch(MAIN_BRANCH)
         self.git_cmd.switch("-c", package)
-        self.push(package)
+        self.git_cmd.push(UPSTREAM_NAME, package)
+        self._create_packit_config()
+        click.echo(f"Package {package} created")
 
     def request_package(self, package_name: str) -> None:
         upstream = self.gh_repo.get_root_repo()
@@ -137,8 +188,7 @@ class AlpaRepo(LocalRepo):
 
     @staticmethod
     def _prepare_cloned_repo(local_repo: Repo, gh_repo: GithubRepo) -> None:
-        # tady je potreba to neudelat v self
-        Remote.create(local_repo, UPSTREAM_NAME, gh_repo.upstream_url)
+        Remote.create(local_repo, UPSTREAM_NAME, gh_repo.upstream_clone_url)
 
     @staticmethod
     def _get_repo_name_from_url(repo_url: str) -> str:
@@ -155,5 +205,7 @@ class AlpaRepo(LocalRepo):
         if not gh_repo.is_fork():
             raise UsageError(CLONED_REPO_IS_NOT_FORK)
 
-        cloned_repo = Repo.clone_from(url, getcwd() + cls._get_repo_name_from_url(url))
+        cloned_repo = Repo.clone_from(
+            url, f"{getcwd()}/{cls._get_repo_name_from_url(url)}"
+        )
         cls._prepare_cloned_repo(cloned_repo, gh_repo)

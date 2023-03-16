@@ -3,9 +3,13 @@
 
 FROM fedora:latest
 
-WORKDIR /alpa_workdir
+# here will be the copied files from alpa
+WORKDIR /alpa/alpa_copy
+COPY . /alpa/alpa_copy
 
-COPY . /alpa_workdir
+# bind local alpa project to this directory to tinker with it
+RUN mkdir -p /alpa/alpa_bind
 
 RUN dnf install -y make git pip poetry
+# install package dependencies (first enter poetry shell -> `$ poetry shell`)
 RUN poetry install
