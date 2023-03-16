@@ -46,13 +46,36 @@ class LocalRepo:
     def package(self) -> str:
         return self.branch.lstrip(ALPA_FEAT_BRANCH_PREFIX)
 
+    def show_remote_branches(self, remote: str) -> List[str]:
+        lines = [
+            line.strip()
+            for line in self.git_cmd.remote("--verbose", "show", remote).split("\n")
+        ]
+        if "Remote branches:" not in lines:
+            return []
+
+        start = lines.index("Remote branches:")
+
+        if "Local branch configured for 'git pull':" in lines:
+            end = lines.index("Local branch configured for 'git pull':")
+        elif "Local ref configured for 'git push':" in lines:
+            end = lines.index("Local ref configured for 'git push':")
+        else:
+            end = len(lines)
+
+        lines_with_remote_branches = lines[start + 1 : end]
+        return [line.split()[0] for line in lines_with_remote_branches]
+
     def get_packages(self, regex: str) -> List[str]:
-        remote_refs = self.local_repo.remote(name=UPSTREAM_NAME).refs
+        # self.local_repo.remote(name=UPSTREAM_NAME).refs don't work on every case
+        refs_without_main = filter(
+            lambda ref: ref != "main", self.show_remote_branches(UPSTREAM_NAME)
+        )
         if regex == "":
-            return [pkg.name for pkg in remote_refs]
+            return list(refs_without_main)
 
         pattern = re.compile(regex)
-        return [pkg.name for pkg in remote_refs if pattern.match(pkg)]
+        return [ref for ref in refs_without_main if pattern.match(ref)]
 
     def _is_repo_in_predefined_state(self) -> bool:
         remotes_name_set = {remote.name for remote in self.local_repo.remotes}
