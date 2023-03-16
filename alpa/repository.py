@@ -39,8 +39,12 @@ class LocalRepo:
             raise ClickException(NOT_IN_PREDEFINED_STATE)
 
     @property
-    def branch(self) -> str:
+    def remote_associated_with_current_branch(self) -> str:
         return self.local_repo.active_branch.tracking_branch().remote_name
+
+    @property
+    def branch(self) -> str:
+        return self.local_repo.active_branch.name
 
     @property
     def package(self) -> str:
