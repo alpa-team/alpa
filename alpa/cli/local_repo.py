@@ -31,7 +31,7 @@ def show_history(oneline: bool) -> None:
         params.append("--oneline")
 
     local_repo = LocalRepo(Path(getcwd()))
-    local_repo.get_history_of_branch(local_repo.package, *params)
+    click.echo(local_repo.get_history_of_branch(local_repo.package, params))
 
 
 @click.command("switch")
