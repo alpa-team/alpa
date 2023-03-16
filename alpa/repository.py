@@ -90,8 +90,8 @@ class LocalRepo:
             click.echo(self.git_cmd.fetch(UPSTREAM_NAME, package))
             click.echo(self.git_cmd.switch(package))
 
-    def get_history_of_branch(self, branch: str, *params: List[str]) -> None:
-        return self.git_cmd.log("--all", "--decorate", "--graph", *params, branch)
+    def get_history_of_branch(self, branch: str, *params: List[str]) -> str:
+        return self.git_cmd.log("--decorate", "--graph", *params, branch)
 
     @staticmethod
     def _get_message_from_editor() -> str:
