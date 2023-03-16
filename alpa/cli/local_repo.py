@@ -1,8 +1,13 @@
+"""
+These commands need to create LocalRepo -> no GH token required
+"""
+
+
 from os import getcwd
 from pathlib import Path
 
 import click
-from click import pass_context, ClickException
+from click import ClickException, Choice
 
 from alpa.repository import LocalRepo
 
@@ -10,13 +15,7 @@ from alpa.repository import LocalRepo
 pkg_name = click.argument("name", type=str)
 
 
-@click.group()
-@pass_context
-def local_repo(ctx) -> None:
-    ctx.obj = LocalRepo(Path(getcwd()))
-
-
-@local_repo.command("show-history")
+@click.command("show-history")
 @click.option(
     "-o",
     "--oneline",
@@ -25,26 +24,24 @@ def local_repo(ctx) -> None:
     default=False,
     help="Each commit is displayed as one line",
 )
-@pass_context
-def show_history(ctx, oneline: bool) -> None:
+def show_history(oneline: bool) -> None:
     """Show git history of current package"""
     params = []
     if oneline:
         params.append("--oneline")
 
-    local = ctx.obj
-    local.get_history_of_branch(local.package, *params)
+    local_repo = LocalRepo(Path(getcwd()))
+    local_repo.get_history_of_branch(local_repo.package, *params)
 
 
-@local_repo.command("switch")
+@click.command("switch")
 @pkg_name
-@pass_context
-def switch(ctx, name: str) -> None:
+def switch(name: str) -> None:
     """Switch to specified package"""
-    ctx.obj.switch_to_package(name)
+    LocalRepo(Path(getcwd())).switch_to_package(name)
 
 
-@local_repo.command("commit")
+@click.command("commit")
 @click.option(
     "-m",
     "--message",
@@ -52,16 +49,15 @@ def switch(ctx, name: str) -> None:
     default="",
     help="Your commit message not longer than 80 characters.",
 )
-@pass_context
-def commit(ctx, message: str) -> None:
+def commit(message: str) -> None:
     """Commit your changes in your package's repository"""
     if len(message) > 80:
         raise ClickException("Message longer than 80 characters")
 
-    ctx.obj.commit(message)
+    LocalRepo(Path(getcwd())).commit(message)
 
 
-@local_repo.command("push")
+@click.command("push")
 @click.option(
     "-p",
     "--pull-request",
@@ -70,27 +66,46 @@ def commit(ctx, message: str) -> None:
     default=False,
     help="This will create pull request on GitHub for you.",
 )
-@pass_context
-def push(ctx, pull_request: bool) -> None:
+def push(pull_request: bool) -> None:
     """Pushes your commited changes to the upstream so you can make PR"""
-    alpa = ctx.obj
-    alpa.push(alpa.package)
+    local_repo = LocalRepo(Path(getcwd()))
+    local_repo.push(local_repo.package)
 
     if pull_request:
-        alpa.gh_repo.create_pr()
+        local_repo.gh_repo.create_pr()
 
 
-@local_repo.command("pull")
-@pass_context
-def pull(ctx) -> None:
+@click.command("pull")
+def pull() -> None:
     """Pull last recent changes of package you are on from upstream"""
-    ctx.obj.pull(ctx.obj.branch)
+    local_repo = LocalRepo(Path(getcwd()))
+    local_repo.pull(local_repo.branch)
 
 
-@local_repo.command("list")
+@click.command("list")
 @click.option("-p", "--pattern", type=str, default="", help="Optional pattern to match")
-@pass_context
-def list(ctx, pattern: str) -> None:
+def list(pattern: str) -> None:
     """List all packages or packages matching regex"""
-    for pkg in ctx.obj.get_packages(pattern):
+    for pkg in LocalRepo(Path(getcwd())).get_packages(pattern):
         click.echo(pkg)
+
+
+@click.command("genspec")
+@click.option(
+    "--lang",
+    type=Choice(["python", "java"], case_sensitive=False),
+    required=True,
+    help="Choose the programming language for which the generator is designed",
+)
+@click.option(
+    "-t",
+    "--test",
+    default=False,
+    help=(
+        "Send package with generated spec file to "
+        "packit to test whether build will succeed."
+    ),
+)
+def genspec(lang: str, test: bool) -> None:
+    """This command uses some existing spec file generators for you"""
+    pass
