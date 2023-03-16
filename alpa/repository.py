@@ -82,7 +82,13 @@ class LocalRepo:
         return remotes_name_set == {ORIGIN_NAME, UPSTREAM_NAME}
 
     def switch_to_package(self, package: str) -> None:
-        self.git_cmd.switch(package)
+        try:
+            click.echo(self.git_cmd.switch(package))
+        except GitCommandError:
+            # switching to the package for the first time
+            click.echo(f"Switching to the package {package} for the first time")
+            click.echo(self.git_cmd.fetch(UPSTREAM_NAME, package))
+            click.echo(self.git_cmd.switch(package))
 
     def get_history_of_branch(self, branch: str, *params: List[str]) -> None:
         return self.git_cmd.log("--all", "--decorate", "--graph", *params, branch)
