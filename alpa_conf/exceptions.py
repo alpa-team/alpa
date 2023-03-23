@@ -1,0 +1,2 @@
+class AlpaConfException(Exception):
+    pass
