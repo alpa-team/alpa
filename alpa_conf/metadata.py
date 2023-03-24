@@ -61,6 +61,7 @@ class Metadata:
             "maintainers",
             "targets",
             "targets_notify_on_fail",
+            "name",
             {"upstream": ["url", "version"]},
         ]
         return cls._mandatory_fields_check_rec(dict_to_test, mandatory_keys)
@@ -96,3 +97,7 @@ class Metadata:
     @property
     def arch(self) -> set[str]:
         return set(self.metadata.get("arch", ["x86_64"]))
+
+    @property
+    def package_name(self) -> str:
+        return self.metadata["name"]

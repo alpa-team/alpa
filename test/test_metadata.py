@@ -40,6 +40,7 @@ class TestMetadata:
         [
             pytest.param(
                 {
+                    "name": ...,
                     "maintainers": ...,
                     "targets": ...,
                     "targets_notify_on_fail": ...,
@@ -86,6 +87,7 @@ class TestMetadata:
             "naruto": "narutothebest@konoha.jp",
             "random_guy": "123@random.r",
         }
+        assert metadata_cls.package_name == "pretty_package"
         assert metadata_cls.upstream_url == "some-url"
         assert metadata_cls.upstream_version == "1.1.1"
         assert metadata_cls.targets == {"f36", "f37", "centos"}
