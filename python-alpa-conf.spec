@@ -2,7 +2,7 @@
 
 
 Name:           python-%{srcname}
-Version:        1.0.0
+Version:        0.1.0
 Release:        1%{?dist}
 Summary:        Wrapper around configuration files for packit and alpa
 
@@ -30,7 +30,7 @@ Summary:        %{summary}
 
 
 %prep
-%autosetup
+%autosetup -p1 -n alpa_conf-%{version}
 
 
 %generate_buildrequires
@@ -39,18 +39,24 @@ Summary:        %{summary}
 
 %build
 %pyproject_wheel
-%pyproject_save_files %{srcname}
 
 
 %install
 %pyproject_install
+# For official Fedora packages, including files with '*' +auto is not allowed
+# Replace it with a list of relevant Python modules/globs and list extra files in %%files
+%pyproject_save_files alpa_conf
 
 
-%files -n %{name} -f %{pyproject_files}
+%check
+%pyproject_check_import
+
+
+%files -n python3-%{srcname} -f %{pyproject_files}
 %license LICENSE
 %doc README.md
 
 
 %changelog
-* Fri Mar 24 2023 Jiri Kyjovsky <j1.kyjovsky@gmail.com>
-- Initial package 0.1.0
+* Fri Mar 24 2023 Jiri Kyjovsky <j1.kyjovsky@gmail.com> - 0.1.0-1
+- Initial package
