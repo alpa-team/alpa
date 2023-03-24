@@ -17,6 +17,8 @@ python = "^3.8"
 click = ">=8.0.0"
 gitpython = ">=3.0"
 pygithub = ">=1.4"
+pyyaml = ">=5.0"
+alpa-conf = ">=0.1.0"
 
 
 [tool.poetry.dev-dependencies]
