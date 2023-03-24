@@ -9,6 +9,10 @@ jobs:
     targets:
       - fedora-all
       - epel-9
+    metadata:
+      owner: "alpa-team"
+      project: "alpa-pull-requests"
+      branch: main
 
   - job: copr_build
     trigger: commit
