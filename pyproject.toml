@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "alpa-conf"
+version = "0.1.0"
+description = "Wrapper around configuration files for packit and alpa"
+authors = ["Jiri Kyjovsky <j1.kyjovsky@gmail.com>"]
+maintainers = ["Jiří Kyjovský <j1.kyjovsky@gmail.com>"]
+license = "GPLv3"
+readme = "README.md"
+homepage = "https://github.com/alpa-team/alpa-conf"
+repository = "https://github.com/alpa-team/alpa-conf"
+exclude = ["test/"]
+
+
+[tool.poetry.dependencies]
+python = "^3.8"
+pyyaml = ">=5.0"
+
+
+[tool.poetry.dev-dependencies]
+pytest = ">=7.0.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
