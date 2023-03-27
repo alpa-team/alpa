@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "alpa-conf"
-version = "0.2.0"
+version = "0.2.1"
 description = "Wrapper around configuration files for packit and alpa"
 authors = ["Jiri Kyjovsky <j1.kyjovsky@gmail.com>"]
 maintainers = ["Jiří Kyjovský <j1.kyjovsky@gmail.com>"]
