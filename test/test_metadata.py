@@ -2,6 +2,7 @@ from pathlib import Path
 from unittest.mock import patch, mock_open, MagicMock
 
 import pytest
+from pyfakefs.fake_filesystem import FakeFilesystem
 from yaml import safe_load
 
 from alpa_conf.metadata import Metadata
@@ -10,30 +11,27 @@ from test.config import METADATA_CONFIG_ALL_KEYS, METADATA_CONFIG_MANDATORY_ONLY
 
 class TestMetadata:
     @pytest.mark.parametrize(
-        "metadata_config, is_file_ret",
+        "metadata_config, path, result",
         [
-            pytest.param(METADATA_CONFIG_ALL_KEYS, True),
-            pytest.param(METADATA_CONFIG_MANDATORY_ONLY_KEYS, True),
-            pytest.param(METADATA_CONFIG_MANDATORY_ONLY_KEYS, False),
+            pytest.param(METADATA_CONFIG_ALL_KEYS, "/test/.metadata.yaml", True),
+            pytest.param(
+                METADATA_CONFIG_MANDATORY_ONLY_KEYS, "/test/not-metadata-file", False
+            ),
         ],
     )
-    @patch.object(Path, "is_file")
-    def test_load_metadata_config(self, mock_is_file, metadata_config, is_file_ret):
-        mock_is_file.return_value = is_file_ret
-        metadata_instance = MagicMock(working_dir=Path("/home/user"))
+    def test_load_metadata_config(
+        self, fs: FakeFilesystem, metadata_config, path, result
+    ):
+        fs.create_file(path, contents="test")
+        metadata_instance = MagicMock(working_dir=Path("/test"))
 
-        ret = None
         with patch("builtins.open", mock_open(read_data=metadata_config)):
-            if is_file_ret:
-                ret = Metadata._load_metadata_config(metadata_instance)
-            else:
-                with pytest.raises(FileNotFoundError):
-                    ret = Metadata._load_metadata_config(metadata_instance)
+            ret = Metadata._load_metadata_config(metadata_instance)
 
-        if is_file_ret:
-            assert ret is not None
+        if result:
+            assert ret
         else:
-            assert ret is None
+            assert not ret
 
     @pytest.mark.parametrize(
         "dict_to_test, result",
