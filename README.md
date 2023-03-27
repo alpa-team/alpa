@@ -2,9 +2,12 @@
 
 Another cooL way to PAckage in copr
 
-### Build status
+### Status of alpa system
 
-[![Copr build status](https://copr.fedorainfracloud.org/coprs/alpa-team/alpa/package/alpa/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/alpa-team/alpa/package/alpa/)
+| Package   | Copr build status                                                                                                                                                                                                               |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| alpa      | [![Copr build status](https://copr.fedorainfracloud.org/coprs/alpa-team/alpa/package/alpa/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/alpa-team/alpa/package/alpa/)                                   |
+| alpa-conf | [![Copr build status](https://copr.fedorainfracloud.org/coprs/alpa-team/alpa-conf/package/python-alpa-conf/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/alpa-team/alpa-conf/package/python-alpa-conf/) |
 
 ## Table of contents
 
