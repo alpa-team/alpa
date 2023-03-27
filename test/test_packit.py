@@ -19,7 +19,15 @@ class TestPackitConfig:
         mock_mandatory_fields_check.return_value = True, ""
 
         assert PackitConfig("uwu").get_packit_config() == {
-            "specfile_path": ".spec",
+            "specfile_path": "pretty_package.spec",
+            "srpm_build_deps": ["pip"],
+            "actions": {
+                "create-archive": [
+                    "pip install pyalpa alpa-conf",
+                    'bash -c "alpa get-pkg-archive"',
+                    'bash -c "ls -1 ./pretty_package-*.tar.gz"',
+                ],
+            },
             "jobs": [
                 {
                     "job": "copr_build",

@@ -15,7 +15,15 @@ class PackitConfig:
 
     def get_packit_config(self) -> dict:
         return {
-            "specfile_path": ".spec",
+            "specfile_path": f"{self.metadata.package_name}.spec",
+            "srpm_build_deps": ["pip"],
+            "actions": {
+                "create-archive": [
+                    "pip install pyalpa alpa-conf",
+                    'bash -c "alpa get-pkg-archive"',
+                    f'bash -c "ls -1 ./{self.metadata.package_name}-*.tar.gz"',
+                ],
+            },
             "jobs": [
                 {
                     "job": "copr_build",
