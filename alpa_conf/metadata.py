@@ -11,26 +11,24 @@ class Metadata:
     def __init__(self) -> None:
         self.working_dir = Path(getcwd())
         self.metadata = self._load_metadata_config()
+        if not self.metadata:
+            raise FileNotFoundError("No metadata file found in package")
 
         result, missing = Metadata._mandatory_fields_check(self.metadata)
         if not result:
             raise AlpaConfException(f"The `{missing}` key is missing in metadata.yaml")
 
     def _load_metadata_config(self) -> dict:
-        config = {}
-        for file_name, suffix in zip(METADATA_FILE_NAMES, METADATA_SUFFIXES):
-            full_path = self.working_dir / f"{file_name}.{suffix}"
-            if not full_path.is_file():
-                continue
+        for file_name in METADATA_FILE_NAMES:
+            for suffix in METADATA_SUFFIXES:
+                full_path = self.working_dir / f"{file_name}.{suffix}"
+                if not full_path.is_file():
+                    continue
 
-            with open(full_path) as meta_file:
-                config = safe_load(meta_file.read())
-                break
+                with open(full_path) as meta_file:
+                    return safe_load(meta_file.read())
 
-        if not config:
-            raise FileNotFoundError("No metadata file found in package")
-
-        return config
+        return {}
 
     @staticmethod
     def _mandatory_fields_check_rec(
