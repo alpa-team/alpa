@@ -21,5 +21,5 @@ jobs:
       - epel-9
     metadata:
       owner: "alpa-team"
-      project: "alpa-conf"
+      project: "alpa"
       branch: main
