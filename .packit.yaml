@@ -3,13 +3,6 @@
 
 specfile_path: alpa.spec
 
-files_to_sync:
-  - alpa.spec
-  - .packit.yaml
-
-upstream_package_name: alpa
-downstream_package_name: alpa
-
 jobs:
   - job: copr_build
     trigger: pull_request
