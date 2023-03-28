@@ -60,7 +60,7 @@ class Metadata:
             "targets",
             "targets_notify_on_fail",
             "name",
-            {"upstream": ["url", "version"]},
+            {"upstream": ["source_url", "ref"]},
         ]
         return cls._mandatory_fields_check_rec(dict_to_test, mandatory_keys)
 
@@ -73,12 +73,12 @@ class Metadata:
         return self.metadata["maintainers"]
 
     @property
-    def upstream_url(self) -> str:
-        return self.metadata["upstream"]["url"]
+    def upstream_source_url(self) -> str:
+        return self.metadata["upstream"]["source_url"]
 
     @property
-    def upstream_version(self) -> str:
-        return self.metadata["upstream"]["version"]
+    def upstream_ref(self) -> str:
+        return self.metadata["upstream"]["ref"]
 
     @property
     def autoupdate(self) -> bool:

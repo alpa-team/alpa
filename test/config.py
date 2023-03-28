@@ -8,8 +8,8 @@ maintainers:
   random_guy: 123@random.r
 
 upstream:
-  url: some-url
-  version: 1.1.1
+  source_url: some-url
+  ref: 1.1.1
 
 targets:
   - f37
@@ -33,8 +33,8 @@ maintainers:
   random_guy: 123@random.r
 
 upstream:
-  url: some-url
-  version: 1.1.1
+  source_url: some-url
+  ref: 1.1.1
 
 targets:
   - f37
