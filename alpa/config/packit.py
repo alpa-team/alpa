@@ -39,7 +39,7 @@ class PackitConfig:
             ],
         }
 
-    def _packit_config_file_exists(self) -> bool:
+    def packit_config_file_exists(self) -> bool:
         for packit_config_name in PACKIT_CONFIG_NAMES:
             files_in_dir = [
                 file.name for file in self.working_dir.iterdir() if file.is_file()
@@ -50,7 +50,7 @@ class PackitConfig:
         return False
 
     def create_packit_config(self) -> None:
-        if self._packit_config_file_exists():
+        if self.packit_config_file_exists():
             raise FileExistsError("Packit configuration file already exists")
 
         with open(".packit.yaml", "w") as packit_yaml:

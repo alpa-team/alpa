@@ -127,3 +127,19 @@ def list(pattern: str) -> None:
 def genspec(lang: str, test: bool) -> None:
     """This command uses some existing spec file generators for you"""
     raise NotImplementedError("Not implemented yet (1.0 goal)")
+
+
+@click.command("create-packit-config")
+@click.option(
+    "--override",
+    is_flag=True,
+    show_default=True,
+    default=False,
+    help="Override packit config file",
+)
+def create_packit_config(override: bool) -> None:
+    """Creates packit config based on metadata.yaml file in package"""
+    if not LocalRepo(Path(getcwd())).create_packit_config(override):
+        raise ClickException(
+            "Packit file already exists. To override it use --override flag."
+        )
