@@ -10,11 +10,11 @@ from tempfile import NamedTemporaryFile
 from typing import List, Optional
 from urllib.parse import urlparse
 
-from alpa_conf.packit import PackitConfig
 from click import UsageError, ClickException
 import click
 from git import Repo, Remote, GitCommandError
 
+from alpa.config.packit import PackitConfig
 from alpa.constants import (
     ALPA_FEAT_BRANCH,
     ALPA_FEAT_BRANCH_PREFIX,
@@ -147,6 +147,14 @@ class LocalRepo:
 
         return ""
 
+    def create_packit_config(self, override: bool) -> bool:
+        packit_conf = PackitConfig(self.package)
+        if packit_conf.packit_config_file_exists() and not override:
+            return False
+
+        packit_conf.create_packit_config()
+        return True
+
 
 class AlpaRepo(LocalRepo):
     def __init__(self, repo_path: Path, gh_api: Optional[GithubAPI] = None) -> None:
@@ -164,7 +172,6 @@ class AlpaRepo(LocalRepo):
         self.git_cmd.switch(MAIN_BRANCH)
         self.git_cmd.switch("-c", package)
         self.git_cmd.push(UPSTREAM_NAME, package)
-        PackitConfig(self.package).create_packit_config()
         click.echo(f"Package {package} created")
 
     def request_package(self, package_name: str) -> None:

@@ -10,6 +10,7 @@ from typing import List
 import click
 from click import ClickException, Choice
 
+from alpa.config.packit import PackitConfig
 from alpa.repository import LocalRepo, AlpaRepo
 
 pkg_name = click.argument("name", type=str)
@@ -77,6 +78,15 @@ def push(pull_request: bool) -> None:
     """Pushes your commited changes to the upstream so you can make PR"""
     repo_path = Path(getcwd())
     local_repo = LocalRepo(repo_path)
+
+    packit_conf = PackitConfig(local_repo.package)
+    if not packit_conf.packit_config_file_exists():
+        packit_conf.create_packit_config()
+        local_repo.git_cmd.add(".packit.yaml")
+        local_repo.git_cmd.commit(
+            "alpa: automatically add .packit.yaml config to the package"
+        )
+
     local_repo.push(local_repo.branch)
 
     if not pull_request:
@@ -127,3 +137,19 @@ def list(pattern: str) -> None:
 def genspec(lang: str, test: bool) -> None:
     """This command uses some existing spec file generators for you"""
     raise NotImplementedError("Not implemented yet (1.0 goal)")
+
+
+@click.command("create-packit-config")
+@click.option(
+    "--override",
+    is_flag=True,
+    show_default=True,
+    default=False,
+    help="Override packit config file",
+)
+def create_packit_config(override: bool) -> None:
+    """Creates packit config based on metadata.yaml file in package"""
+    if not LocalRepo(Path(getcwd())).create_packit_config(override):
+        raise ClickException(
+            "Packit file already exists. To override it use --override flag."
+        )
