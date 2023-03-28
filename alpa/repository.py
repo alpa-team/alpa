@@ -10,11 +10,11 @@ from tempfile import NamedTemporaryFile
 from typing import List, Optional
 from urllib.parse import urlparse
 
-from alpa_conf.packit import PackitConfig
 from click import UsageError, ClickException
 import click
 from git import Repo, Remote, GitCommandError
 
+from alpa.config.packit import PackitConfig
 from alpa.constants import (
     ALPA_FEAT_BRANCH,
     ALPA_FEAT_BRANCH_PREFIX,
