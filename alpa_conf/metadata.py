@@ -1,5 +1,6 @@
 from os import getcwd
 from pathlib import Path
+from typing import Optional
 
 from yaml import safe_load
 
@@ -8,8 +9,8 @@ from alpa_conf.exceptions import AlpaConfException
 
 
 class Metadata:
-    def __init__(self) -> None:
-        self.working_dir = Path(getcwd())
+    def __init__(self, working_dir: Optional[Path] = None) -> None:
+        self.working_dir = working_dir if working_dir is not None else Path(getcwd())
         self.metadata = self._load_metadata_config()
         if not self.metadata:
             raise FileNotFoundError("No metadata file found in package")
@@ -60,7 +61,7 @@ class Metadata:
             "targets",
             "targets_notify_on_fail",
             "name",
-            {"upstream": ["url", "version"]},
+            {"upstream": ["source_url", "ref"]},
         ]
         return cls._mandatory_fields_check_rec(dict_to_test, mandatory_keys)
 
@@ -73,12 +74,12 @@ class Metadata:
         return self.metadata["maintainers"]
 
     @property
-    def upstream_url(self) -> str:
-        return self.metadata["upstream"]["url"]
+    def upstream_source_url(self) -> str:
+        return self.metadata["upstream"]["source_url"]
 
     @property
-    def upstream_version(self) -> str:
-        return self.metadata["upstream"]["version"]
+    def upstream_ref(self) -> str:
+        return self.metadata["upstream"]["ref"]
 
     @property
     def autoupdate(self) -> bool:

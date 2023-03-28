@@ -42,7 +42,7 @@ class TestMetadata:
                     "maintainers": ...,
                     "targets": ...,
                     "targets_notify_on_fail": ...,
-                    "upstream": {"url": ..., "version": ...},
+                    "upstream": {"source_url": ..., "ref": ...},
                 },
                 True,
             ),
@@ -86,8 +86,8 @@ class TestMetadata:
             "random_guy": "123@random.r",
         }
         assert metadata_cls.package_name == "pretty_package"
-        assert metadata_cls.upstream_url == "some-url"
-        assert metadata_cls.upstream_version == "1.1.1"
+        assert metadata_cls.upstream_source_url == "some-url"
+        assert metadata_cls.upstream_ref == "1.1.1"
         assert metadata_cls.targets == {"f36", "f37", "centos"}
         assert metadata_cls.targets_notify_on_fail == {"f36", "centos"}
 
