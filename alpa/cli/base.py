@@ -1,7 +1,4 @@
 import click
-import requests
-
-from alpa_conf.metadata import Metadata
 
 from alpa.cli.alpa_repo import create, delete, request_package
 from alpa.cli.local_repo import (
@@ -14,6 +11,7 @@ from alpa.cli.local_repo import (
     genspec,
     add,
 )
+from alpa.helpers import download_upstream_source
 from alpa.repository import AlpaRepo
 
 
@@ -35,18 +33,7 @@ def clone(url: str) -> None:
 @entry_point.command("get-pkg-archive")
 def get_pkg_archive() -> None:
     """Gets archive from package config"""
-    metadata = Metadata()
-    resp = requests.get(metadata.upstream_url, allow_redirects=True)
-    if not resp.ok:
-        raise ConnectionError(
-            f"Couldn't download source from {metadata.upstream_url}. "
-            f"Reason: {resp.reason}"
-        )
-
-    with open(
-        f"{metadata.package_name}-{metadata.upstream_version}.tar.gz", "wb"
-    ) as archive:
-        archive.write(resp.content)
+    download_upstream_source()
 
 
 entry_point.add_command(create)
