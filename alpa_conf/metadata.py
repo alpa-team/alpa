@@ -1,5 +1,6 @@
 from os import getcwd
 from pathlib import Path
+from typing import Optional
 
 from yaml import safe_load
 
@@ -8,8 +9,8 @@ from alpa_conf.exceptions import AlpaConfException
 
 
 class Metadata:
-    def __init__(self) -> None:
-        self.working_dir = Path(getcwd())
+    def __init__(self, working_dir: Optional[Path] = None) -> None:
+        self.working_dir = working_dir if working_dir is not None else Path(getcwd())
         self.metadata = self._load_metadata_config()
         if not self.metadata:
             raise FileNotFoundError("No metadata file found in package")
