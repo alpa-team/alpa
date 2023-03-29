@@ -16,6 +16,8 @@ BuildRequires:  python3-pygithub
 BuildRequires:  python3-GitPython
 BuildRequires:  python3-alpa-conf
 
+Requires:       mock
+
 
 %description
 %{summary}
