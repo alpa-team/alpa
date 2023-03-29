@@ -102,7 +102,7 @@ def push(pull_request: bool) -> None:
         source_branch=f"{alpa.gh_api.gh_user}:{local_repo.feat_branch}",
         target_branch=local_repo.package,
     )
-    click.echo(f"PR#{pr.id} created. URL: {pr.url}")
+    click.echo(f"PR#{pr.number} created. URL: {pr.html_url}")
 
 
 @click.command("pull")
