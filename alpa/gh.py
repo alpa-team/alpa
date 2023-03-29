@@ -8,7 +8,7 @@ from typing import Optional
 
 import click
 from click import UsageError
-from github import Github, Issue, PullRequest
+from github import Github, Issue, PullRequest, UnknownObjectException
 
 from alpa.constants import GH_API_TOKEN_NAME, GH_WRITE_ACCESS
 from alpa.messages import NO_GH_API_KEY_FOUND, RETURNING_CLONE_URL_MSG
@@ -79,6 +79,13 @@ class GithubRepo:
         return self.get_root_repo()._repo.create_pull(
             title, body, base=target_branch, head=source_branch
         )
+
+    def pr_exists(self, id: int) -> bool:
+        try:
+            self._repo.get_pull(id)
+            return True
+        except UnknownObjectException:
+            return False
 
 
 class GithubAPI:
