@@ -18,7 +18,7 @@ class UpstreamIntegration(LocalRepo):
     def __init__(self, repo_path: Path) -> None:
         super().__init__(repo_path)
         self.metadata = Metadata(repo_path)
-        self.nvr = f"{self.metadata.package_name}-{self.metadata.upstream_ref}"
+        self.nvr = f"{self.package}-{self.metadata.upstream_ref}"
         self.spec_file = f"{self.package}.spec"
 
     @staticmethod

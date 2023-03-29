@@ -97,12 +97,14 @@ def push(pull_request: bool) -> None:
     alpa = AlpaRepo(repo_path)
     pr = alpa.gh_repo.create_pr(
         title=f"[alpa-cli] Create update of package {local_repo.package}",
-        # TODO this should provide at least some short descriptive message
-        body="",
+        body=(
+            "This PR was created automatically via alpa-cli for "
+            f"user {alpa.gh_api.gh_user}"
+        ),
         source_branch=f"{alpa.gh_api.gh_user}:{local_repo.feat_branch}",
         target_branch=local_repo.package,
     )
-    click.echo(f"PR#{pr.id} created. URL: {pr.url}")
+    click.echo(f"PR#{pr.number} created. URL: {pr.html_url}")
 
 
 @click.command("pull")
