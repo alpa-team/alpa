@@ -8,10 +8,12 @@ from pathlib import Path
 from typing import List
 
 import click
+from alpa_conf.metadata import Metadata
 from click import ClickException, Choice
 
 from alpa.config.packit import PackitConfig
 from alpa.repository import LocalRepo, AlpaRepo
+from alpa.upstream_integration import UpstreamIntegration
 
 pkg_name = click.argument("name", type=str)
 
@@ -153,3 +155,31 @@ def create_packit_config(override: bool) -> None:
         raise ClickException(
             "Packit file already exists. To override it use --override flag."
         )
+
+
+@click.command("mockbuild")
+@click.option(
+    "--chroot",
+    type=str,
+    default="",
+    help="Override chroots specified in metadata.yaml by one specific chroot",
+)
+def mockbuild(chroot: str) -> None:
+    """
+    Uses mock tool to build package. WARNING: works only on rpm-based systems.
+
+    Builds for all chroots specified in metadata.yaml. Can be overriden by --chroot
+     option which does build against one specified chroot.
+    """
+    if chroot:
+        chroots = [chroot]
+    else:
+        chroots = list(Metadata().targets)
+
+    UpstreamIntegration(Path(getcwd())).mockbuild(chroots)
+
+
+@click.command("get-pkg-archive")
+def get_pkg_archive() -> None:
+    """Gets archive from package config"""
+    UpstreamIntegration(Path(getcwd())).download_upstream_source()
