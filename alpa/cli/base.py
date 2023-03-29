@@ -10,6 +10,9 @@ from alpa.cli.local_repo import (
     list,
     genspec,
     add,
+    get_pkg_archive,
+    mockbuild,
+    create_packit_config,
 )
 from alpa.repository import AlpaRepo
 
@@ -43,6 +46,9 @@ entry_point.add_command(push)
 entry_point.add_command(list)
 entry_point.add_command(genspec)
 entry_point.add_command(add)
+entry_point.add_command(get_pkg_archive)
+entry_point.add_command(mockbuild)
+entry_point.add_command(create_packit_config)
 
 
 if __name__ == "__main__":
