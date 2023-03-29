@@ -11,8 +11,9 @@ from alpa.cli.local_repo import (
     genspec,
     add,
 )
-from alpa.helpers import download_upstream_source
 from alpa.repository import AlpaRepo
+
+# TODO: get rid of the repetitive _Repo(Path(getcwd()))
 
 
 @click.group()
@@ -28,12 +29,6 @@ def entry_point() -> None:
 def clone(url: str) -> None:
     """Clone and prepare Alpa repository"""
     AlpaRepo.clone(url)
-
-
-@entry_point.command("get-pkg-archive")
-def get_pkg_archive() -> None:
-    """Gets archive from package config"""
-    download_upstream_source()
 
 
 entry_point.add_command(create)
