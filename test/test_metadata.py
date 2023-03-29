@@ -5,6 +5,7 @@ import pytest
 from pyfakefs.fake_filesystem import FakeFilesystem
 from yaml import safe_load
 
+from alpa_conf.constants import MANDATORY_KEYS
 from alpa_conf.metadata import Metadata
 from test.config import METADATA_CONFIG_ALL_KEYS, METADATA_CONFIG_MANDATORY_ONLY_KEYS
 
@@ -99,3 +100,11 @@ class TestMetadata:
             assert metadata_cls.arch == {"x86_64", "s390x"}
         else:
             assert metadata_cls.arch == {"x86_64"}
+
+    def test_be_aware_of_changes_in_mandatory_keys(self):
+        assert [
+            "maintainers",
+            "targets",
+            "targets_notify_on_fail",
+            {"upstream": ["source_url", "ref"]},
+        ] == MANDATORY_KEYS
