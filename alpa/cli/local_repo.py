@@ -86,7 +86,7 @@ def push(pull_request: bool) -> None:
         packit_conf.create_packit_config()
         local_repo.git_cmd.add(".packit.yaml")
         local_repo.git_cmd.commit(
-            "alpa: automatically add .packit.yaml config to the package"
+            '-m "alpa: automatically add .packit.yaml config to the package"'
         )
 
     local_repo.push(local_repo.branch)
@@ -184,4 +184,7 @@ def mockbuild(chroot: str) -> None:
 @click.command("get-pkg-archive")
 def get_pkg_archive() -> None:
     """Gets archive from package config"""
-    UpstreamIntegration(Path(getcwd())).download_upstream_source()
+    meta = Metadata()
+    UpstreamIntegration.download_upstream_source(
+        meta.upstream_source_url, f"{meta.pkg_name}-{meta.upstream_ref}"
+    )

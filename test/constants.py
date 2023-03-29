@@ -1,4 +1,6 @@
 METADATA_CONFIG_ALL_KEYS = """
+name: some_package
+
 autoupdate: true
 
 maintainers:

@@ -18,7 +18,7 @@ class UpstreamIntegration(LocalRepo):
     def __init__(self, repo_path: Path) -> None:
         super().__init__(repo_path)
         self.metadata = Metadata(repo_path)
-        self.nvr = f"{self.package}-{self.metadata.upstream_ref}"
+        self.name_version = f"{self.package}-{self.metadata.upstream_ref}"
         self.spec_file = f"{self.package}.spec"
 
     @staticmethod
@@ -40,7 +40,7 @@ class UpstreamIntegration(LocalRepo):
                 "--spec",
                 self.spec_file,
                 "--sources",
-                f"{self.nvr}.tar.gz",
+                f"{self.name_version}.tar.gz",
                 "--resultdir",
                 srpm_result_dir,
             ]
@@ -72,19 +72,22 @@ class UpstreamIntegration(LocalRepo):
 
         return mock_results_path
 
-    def download_upstream_source(self) -> None:
-        resp = requests.get(self.metadata.upstream_source_url, allow_redirects=True)
+    @staticmethod
+    def download_upstream_source(upstream_source_url: str, name_version: str) -> None:
+        resp = requests.get(upstream_source_url, allow_redirects=True)
         if not resp.ok:
             raise ConnectionError(
-                f"Couldn't download source from {self.metadata.upstream_source_url}. "
+                f"Couldn't download source from {upstream_source_url}. "
                 f"Reason: {resp.reason}"
             )
 
-        with open(f"{self.nvr}.tar.gz", "wb") as archive:
+        with open(f"{name_version}.tar.gz", "wb") as archive:
             archive.write(resp.content)
 
     def mockbuild(self, chroots: list[str]) -> None:
-        self.download_upstream_source()
+        self.download_upstream_source(
+            self.metadata.upstream_source_url, self.name_version
+        )
         root_mock_result_dir = self._prepare_mock_result_dir(chroots)
 
         for chroot in chroots:
