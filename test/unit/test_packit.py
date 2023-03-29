@@ -33,13 +33,13 @@ class TestPackitConfig:
                 {
                     "job": "copr_build",
                     "trigger": "pull_request",
-                    "targets": {"f36", "f37", "centos"},
+                    "targets": list({"f36", "f37", "centos"}),
                 },
                 {
                     "job": "copr_build",
                     "trigger": "commit",
                     "branch": "uwu",
-                    "targets": {"f36", "f37", "centos"},
+                    "targets": list({"f36", "f37", "centos"}),
                 },
             ],
         }

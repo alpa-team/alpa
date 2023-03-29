@@ -28,13 +28,13 @@ class PackitConfig:
                 {
                     "job": "copr_build",
                     "trigger": "pull_request",
-                    "targets": self.metadata.targets,
+                    "targets": list(self.metadata.targets),
                 },
                 {
                     "job": "copr_build",
                     "trigger": "commit",
                     "branch": self.package_name,
-                    "targets": self.metadata.targets,
+                    "targets": list(self.metadata.targets),
                 },
             ],
         }
@@ -54,4 +54,4 @@ class PackitConfig:
             raise FileExistsError("Packit configuration file already exists")
 
         with open(".packit.yaml", "w") as packit_yaml:
-            packit_yaml.write(dump(self.get_packit_config()))
+            packit_yaml.write(dump(self.get_packit_config(), sort_keys=False))
