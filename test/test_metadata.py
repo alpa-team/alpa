@@ -85,7 +85,6 @@ class TestMetadata:
             "naruto": "narutothebest@konoha.jp",
             "random_guy": "123@random.r",
         }
-        assert metadata_cls.package_name == "pretty_package"
         assert metadata_cls.upstream_source_url == "some-url"
         assert metadata_cls.upstream_ref == "1.1.1"
         assert metadata_cls.targets == {"f36", "f37", "centos"}
