@@ -1,6 +1,4 @@
 METADATA_CONFIG_ALL_KEYS = """
-name: pretty_package
-
 autoupdate: true
 
 maintainers:
@@ -26,8 +24,6 @@ arch:
 """
 
 METADATA_CONFIG_MANDATORY_ONLY_KEYS = """
-name: pretty_package
-
 maintainers:
   naruto: narutothebest@konoha.jp
   random_guy: 123@random.r

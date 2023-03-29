@@ -96,7 +96,3 @@ class Metadata:
     @property
     def arch(self) -> set[str]:
         return set(self.metadata.get("arch", ["x86_64"]))
-
-    @property
-    def package_name(self) -> str:
-        return self.metadata["name"]
