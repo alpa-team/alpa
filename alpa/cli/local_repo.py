@@ -184,4 +184,7 @@ def mockbuild(chroot: str) -> None:
 @click.command("get-pkg-archive")
 def get_pkg_archive() -> None:
     """Gets archive from package config"""
-    UpstreamIntegration(Path(getcwd())).download_upstream_source()
+    meta = Metadata()
+    UpstreamIntegration.download_upstream_source(
+        meta.upstream_source_url, f"{meta.pkg_name}-{meta.upstream_ref}"
+    )
