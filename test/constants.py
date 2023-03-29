@@ -1,6 +1,4 @@
 METADATA_CONFIG_ALL_KEYS = """
-name: pretty_package
-
 autoupdate: true
 
 maintainers:

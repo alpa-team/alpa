@@ -5,8 +5,9 @@ import pytest
 from yaml import safe_load
 
 from alpa_conf.metadata import Metadata
-from alpa_conf.packit import PackitConfig
 from test.constants import METADATA_CONFIG_ALL_KEYS
+
+from alpa.config.packit import PackitConfig
 
 
 class TestPackitConfig:
@@ -19,13 +20,13 @@ class TestPackitConfig:
         mock_mandatory_fields_check.return_value = True, ""
 
         assert PackitConfig("uwu").get_packit_config() == {
-            "specfile_path": "pretty_package.spec",
+            "specfile_path": "uwu.spec",
             "srpm_build_deps": ["pip"],
             "actions": {
                 "create-archive": [
                     "pip install pyalpa alpa-conf",
                     'bash -c "alpa get-pkg-archive"',
-                    'bash -c "ls -1 ./pretty_package-*.tar.gz"',
+                    'bash -c "ls -1 ./uwu-*.tar.gz"',
                 ],
             },
             "jobs": [
@@ -71,4 +72,4 @@ class TestPackitConfig:
         mock_load_metadata_config.return_value = safe_load(METADATA_CONFIG_ALL_KEYS)
         mock_mandatory_fields_check.return_value = True, ""
 
-        assert PackitConfig("uwu")._packit_config_file_exists() == result
+        assert PackitConfig("uwu").packit_config_file_exists() == result
