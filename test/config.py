@@ -1,4 +1,6 @@
 METADATA_CONFIG_ALL_KEYS = """
+name: some_pkg
+
 autoupdate: true
 
 maintainers:
@@ -24,6 +26,8 @@ arch:
 """
 
 METADATA_CONFIG_MANDATORY_ONLY_KEYS = """
+name: some_pkg
+
 maintainers:
   naruto: narutothebest@konoha.jp
   random_guy: 123@random.r

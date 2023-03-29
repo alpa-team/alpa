@@ -11,6 +11,7 @@ PACKIT_CONFIG_NAMES = [
 ]
 
 MANDATORY_KEYS = [
+    "name",
     "maintainers",
     "targets",
     "targets_notify_on_fail",
