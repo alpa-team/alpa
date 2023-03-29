@@ -34,6 +34,8 @@ from alpa.messages import (
 class LocalRepo:
     def __init__(self, repo_path: Path) -> None:
         self.repo_path = repo_path
+        # TODO: this will differ in the future with repo_path
+        self.repo_root_path = repo_path
         self.local_repo = Repo(str(self.repo_path))
         self.git_cmd = self.local_repo.git
 
