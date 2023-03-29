@@ -2,7 +2,7 @@
 
 
 Name:           python-%{srcname}
-Version:        0.3.1
+Version:        0.3.2
 Release:        1%{?dist}
 Summary:        Wrapper around configuration files for packit and alpa
 
