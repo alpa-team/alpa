@@ -160,6 +160,14 @@ def create_packit_config(override: bool) -> None:
         )
 
 
+def _get_chroots_to_build(meta: Metadata, distros: list[str]) -> list[str]:
+    chroots = []
+    for arch in meta.arch:
+        for distro in distros:
+            chroots.append(f"{distro}-{arch}")
+    return chroots
+
+
 @click.command("mockbuild")
 @click.option(
     "--chroot",
@@ -174,11 +182,9 @@ def mockbuild(chroot: str) -> None:
     Builds for all chroots specified in metadata.yaml. Can be overriden by --chroot
      option which does build against one specified chroot.
     """
-    if chroot:
-        chroots = [chroot]
-    else:
-        chroots = list(Metadata().targets)
-
+    meta = Metadata()
+    distros = [chroot] if chroot else list(meta.targets)
+    chroots = _get_chroots_to_build(meta, distros)
     UpstreamIntegration(Path(getcwd())).mockbuild(chroots)
 
 

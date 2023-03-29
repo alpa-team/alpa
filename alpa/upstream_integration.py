@@ -7,6 +7,7 @@ import subprocess
 from pathlib import Path
 from typing import Optional
 
+import click
 import requests
 from alpa_conf.metadata import Metadata
 from click import ClickException
@@ -29,9 +30,14 @@ class UpstreamIntegration(LocalRepo):
 
         return None
 
+    @staticmethod
+    def _run_mock_command(cmd: list[str]) -> int:
+        click.echo(f"Executing command {' '.join(cmd)}")
+        return subprocess.run(cmd).returncode
+
     def _mock_build_one_chroot(self, chroot: str, result_dir: Path) -> int:
         srpm_result_dir = result_dir / "srpm" / chroot
-        process = subprocess.run(
+        retval = UpstreamIntegration._run_mock_command(
             [
                 "mock",
                 "-r",
@@ -42,21 +48,20 @@ class UpstreamIntegration(LocalRepo):
                 "--sources",
                 f"{self.name_version}.tar.gz",
                 "--resultdir",
-                srpm_result_dir,
+                str(srpm_result_dir),
             ]
         )
-        if process.returncode != 0:
-            return process.returncode
+        if retval != 0:
+            return retval
 
         rpm_result_dir = result_dir / "build_results" / chroot
         srpm_path = UpstreamIntegration._find_srpm_file_from_mock_build(srpm_result_dir)
         if srpm_path is None:
             return 1
 
-        process = subprocess.run(
-            ["mock", "-r", chroot, "--resultdir", rpm_result_dir, srpm_path]
+        return UpstreamIntegration._run_mock_command(
+            ["mock", "-r", chroot, "--resultdir", str(rpm_result_dir), str(srpm_path)]
         )
-        return process.returncode
 
     def _prepare_mock_result_dir(self, chroots: list[str]) -> Path:
         mock_results_path = self.repo_path / "mock_results"
@@ -86,7 +91,8 @@ class UpstreamIntegration(LocalRepo):
 
     def mockbuild(self, chroots: list[str]) -> None:
         self.download_upstream_source(
-            self.metadata.upstream_source_url, self.name_version
+            self.metadata.upstream_source_url,
+            self.metadata.upstream_source_url.split("/")[-1].lstrip(".tar.gz"),
         )
         root_mock_result_dir = self._prepare_mock_result_dir(chroots)
 
