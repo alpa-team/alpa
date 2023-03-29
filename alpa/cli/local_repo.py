@@ -52,7 +52,7 @@ def switch(name: str) -> None:
     default="",
     help="Your commit message not longer than 80 characters.",
 )
-@click.option("-n", "--no-verify", if_flag=True, help="Do not run pre-commit")
+@click.option("-n", "--no-verify", is_flag=True, help="Do not run pre-commit")
 def commit(message: str, no_verify: bool) -> None:
     """Commit your changes in your package's repository"""
     if len(message) > 80:
