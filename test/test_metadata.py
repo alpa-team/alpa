@@ -86,6 +86,7 @@ class TestMetadata:
             "naruto": "narutothebest@konoha.jp",
             "random_guy": "123@random.r",
         }
+        assert metadata_cls.pkg_name == "some_pkg"
         assert metadata_cls.upstream_source_url == "some-url"
         assert metadata_cls.upstream_ref == "1.1.1"
         assert metadata_cls.targets == {"f36", "f37", "centos"}
@@ -103,6 +104,7 @@ class TestMetadata:
 
     def test_be_aware_of_changes_in_mandatory_keys(self):
         assert [
+            "name",
             "maintainers",
             "targets",
             "targets_notify_on_fail",
