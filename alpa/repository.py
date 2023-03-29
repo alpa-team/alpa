@@ -2,6 +2,7 @@
 Set of commands that helps with integration of Alpa
 repository.
 """
+import subprocess
 from os import getcwd, environ
 from pathlib import Path
 import re
@@ -138,13 +139,20 @@ class LocalRepo:
         click.echo("Switching to feature branch")
         self.git_cmd.switch("-c", self.feat_branch)
 
-    def commit(self, message: str) -> None:
+    def commit(self, message: str, pre_commit: bool) -> bool:
+        if pre_commit:
+            ret = subprocess.run(["pre-commit", "run", "--all-files"])
+            if ret.returncode != 0:
+                return False
+
         self._ensure_feature_branch()
         index = self.local_repo.index
         if message:
             index.commit(message)
         else:
             index.commit(self._get_message_from_editor())
+
+        return True
 
     def add(self, files: List[str]) -> None:
         self._ensure_feature_branch()

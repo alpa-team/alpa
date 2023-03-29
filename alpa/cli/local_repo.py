@@ -34,7 +34,7 @@ def show_history(oneline: bool) -> None:
         params.append("--oneline")
 
     local_repo = LocalRepo(Path(getcwd()))
-    click.echo(local_repo.get_history_of_branch(local_repo.package, params))
+    click.echo(local_repo.get_history_of_branch(local_repo.branch, params))
 
 
 @click.command("switch")
@@ -52,12 +52,13 @@ def switch(name: str) -> None:
     default="",
     help="Your commit message not longer than 80 characters.",
 )
-def commit(message: str) -> None:
+@click.option("-n", "--no-verify", if_flag=True, help="Do not run pre-commit")
+def commit(message: str, no_verify: bool) -> None:
     """Commit your changes in your package's repository"""
     if len(message) > 80:
         raise ClickException("Message longer than 80 characters")
 
-    LocalRepo(Path(getcwd())).commit(message)
+    LocalRepo(Path(getcwd())).commit(message, not no_verify)
 
 
 @click.command("add")
@@ -116,7 +117,7 @@ def pull() -> None:
 
 @click.command("list")
 @click.option("-p", "--pattern", type=str, default="", help="Optional pattern to match")
-def list(pattern: str) -> None:
+def list_(pattern: str) -> None:
     """List all packages or packages matching regex"""
     for pkg in LocalRepo(Path(getcwd())).get_packages(pattern):
         click.echo(pkg)
@@ -159,6 +160,14 @@ def create_packit_config(override: bool) -> None:
         )
 
 
+def _get_chroots_to_build(meta: Metadata, distros: list[str]) -> list[str]:
+    chroots = []
+    for arch in meta.arch:
+        for distro in distros:
+            chroots.append(f"{distro}-{arch}")
+    return chroots
+
+
 @click.command("mockbuild")
 @click.option(
     "--chroot",
@@ -173,11 +182,9 @@ def mockbuild(chroot: str) -> None:
     Builds for all chroots specified in metadata.yaml. Can be overriden by --chroot
      option which does build against one specified chroot.
     """
-    if chroot:
-        chroots = [chroot]
-    else:
-        chroots = list(Metadata().targets)
-
+    meta = Metadata()
+    distros = [chroot] if chroot else list(meta.targets)
+    chroots = _get_chroots_to_build(meta, distros)
     UpstreamIntegration(Path(getcwd())).mockbuild(chroots)
 
 
