@@ -2,7 +2,7 @@
 
 
 Name:           python-%{srcname}
-Version:        0.3.0
+Version:        0.3.1
 Release:        1%{?dist}
 Summary:        Wrapper around configuration files for packit and alpa
 
@@ -43,8 +43,6 @@ Summary:        %{summary}
 
 %install
 %pyproject_install
-# For official Fedora packages, including files with '*' +auto is not allowed
-# Replace it with a list of relevant Python modules/globs and list extra files in %%files
 %pyproject_save_files alpa_conf
 
 
