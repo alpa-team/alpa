@@ -4,7 +4,7 @@ from typing import Optional
 
 from yaml import safe_load
 
-from alpa_conf.constants import METADATA_FILE_NAMES, METADATA_SUFFIXES
+from alpa_conf.constants import METADATA_FILE_NAMES, METADATA_SUFFIXES, MANDATORY_KEYS
 from alpa_conf.exceptions import AlpaConfException
 
 
@@ -56,14 +56,7 @@ class Metadata:
 
     @classmethod
     def _mandatory_fields_check(cls, dict_to_test: dict) -> tuple[bool, str]:
-        mandatory_keys = [
-            "maintainers",
-            "targets",
-            "targets_notify_on_fail",
-            "name",
-            {"upstream": ["source_url", "ref"]},
-        ]
-        return cls._mandatory_fields_check_rec(dict_to_test, mandatory_keys)
+        return cls._mandatory_fields_check_rec(dict_to_test, MANDATORY_KEYS)
 
     @property
     def maintainers(self) -> list[str]:
