@@ -117,7 +117,7 @@ def pull() -> None:
 
 @click.command("list")
 @click.option("-p", "--pattern", type=str, default="", help="Optional pattern to match")
-def list(pattern: str) -> None:
+def list_(pattern: str) -> None:
     """List all packages or packages matching regex"""
     for pkg in LocalRepo(Path(getcwd())).get_packages(pattern):
         click.echo(pkg)
