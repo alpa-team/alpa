@@ -35,7 +35,9 @@ class UpstreamIntegration(LocalRepo):
         click.echo(f"Executing command {' '.join(cmd)}")
         return subprocess.run(cmd).returncode
 
-    def _mock_build_one_chroot(self, chroot: str, result_dir: Path) -> int:
+    def _mock_build_one_chroot(
+        self, chroot: str, result_dir: Path, source_file_name: str
+    ) -> int:
         srpm_result_dir = result_dir / "srpm" / chroot
         retval = UpstreamIntegration._run_mock_command(
             [
@@ -46,7 +48,7 @@ class UpstreamIntegration(LocalRepo):
                 "--spec",
                 self.spec_file,
                 "--sources",
-                f"{self.name_version}.tar.gz",
+                f"{source_file_name}.tar.gz",
                 "--resultdir",
                 str(srpm_result_dir),
             ]
@@ -90,13 +92,17 @@ class UpstreamIntegration(LocalRepo):
             archive.write(resp.content)
 
     def mockbuild(self, chroots: list[str]) -> None:
+        source_file_name = self.metadata.upstream_source_url.split("/")[-1].rstrip(
+            ".tar.gz"
+        )
         self.download_upstream_source(
-            self.metadata.upstream_source_url,
-            self.metadata.upstream_source_url.split("/")[-1].lstrip(".tar.gz"),
+            self.metadata.upstream_source_url, source_file_name
         )
         root_mock_result_dir = self._prepare_mock_result_dir(chroots)
 
         for chroot in chroots:
-            retval = self._mock_build_one_chroot(chroot, root_mock_result_dir)
+            retval = self._mock_build_one_chroot(
+                chroot, root_mock_result_dir, source_file_name
+            )
             if retval != 0:
                 raise ClickException(f"Mock returned non-zero value: {retval}")
