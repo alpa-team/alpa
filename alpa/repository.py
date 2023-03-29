@@ -63,16 +63,31 @@ class LocalRepo:
             line.strip()
             for line in self.git_cmd.remote("--verbose", "show", remote).split("\n")
         ]
-        if "Remote branches:" not in lines:
+        # TODO: do a better job
+        remote_branch_line = ["Remote branch:", "Remote branches:"]
+        start = -1
+        for line_to_match in remote_branch_line:
+            if line_to_match in lines:
+                start = lines.index(line_to_match)
+                break
+
+        if start == -1:
             return []
 
-        start = lines.index("Remote branches:")
+        # TODO: do a better job
+        possible_start_of_local_stuff = [
+            "Local branch configured for 'git pull':",
+            "Local branches configured for 'git pull':",
+            "Local ref configured for 'git push':",
+            "Local refs configured for 'git push':",
+        ]
+        end = -1
+        for line_to_match in possible_start_of_local_stuff:
+            if line_to_match in lines:
+                end = lines.index(line_to_match)
+                break
 
-        if "Local branch configured for 'git pull':" in lines:
-            end = lines.index("Local branch configured for 'git pull':")
-        elif "Local ref configured for 'git push':" in lines:
-            end = lines.index("Local ref configured for 'git push':")
-        else:
+        if end == -1:
             end = len(lines)
 
         lines_with_remote_branches = lines[start + 1 : end]
