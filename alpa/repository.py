@@ -109,7 +109,62 @@ class LocalRepo:
         remotes_name_set = {remote.name for remote in self.local_repo.remotes}
         return remotes_name_set == {ORIGIN_NAME, UPSTREAM_NAME}
 
+    @property
+    def untracked_files(self) -> list[str]:
+        return self.local_repo.untracked_files
+
+    def _get_dirty_files(self, staged: bool) -> list[str]:
+        result = []
+        status_output = self.git_cmd.status("--porcelain=1").split("\n")
+        for line in status_output:
+            file = line.split()[-1]
+            if line.startswith("MM"):
+                result.append(file)
+                continue
+
+            if not staged and line.startswith(" M"):
+                result.append(file)
+                continue
+
+            if staged and line.startswith("M "):
+                result.append(file)
+                continue
+
+        return result
+
+    @property
+    def modified_files(self) -> list[str]:
+        return self._get_dirty_files(False)
+
+    @property
+    def files_to_be_committed(self) -> list[str]:
+        return self._get_dirty_files(True)
+
+    @staticmethod
+    def _format_files_to_status(files: list[str], msg: str) -> str:
+        if not files:
+            return ""
+
+        output = msg + "\n"
+        output += "\n".join(files)
+        return output + "\n"
+
+    def get_status_output(self) -> str:
+        output = self._format_files_to_status(
+            self.files_to_be_committed, "Files to commit:"
+        )
+        output += self._format_files_to_status(self.modified_files, "Modified files:")
+        output += self._format_files_to_status(self.untracked_files, "Untracked files:")
+        return output
+
     def switch_to_package(self, package: str) -> None:
+        if self.local_repo.is_dirty():
+            click.echo(
+                "Repo is dirty, please commit your changes before switching to"
+                f" another package.\n {self.get_status_output()}"
+            )
+            return None
+
         try:
             click.echo(self.git_cmd.switch(package))
         except GitCommandError:
