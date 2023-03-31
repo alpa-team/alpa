@@ -103,7 +103,7 @@ def push(pull_request: bool) -> None:
             "This PR was created automatically via alpa-cli for "
             f"user {alpa.gh_api.gh_user}"
         ),
-        source_branch=f"{alpa.gh_api.gh_user}:{local_repo.feat_branch}",
+        source_branch=f"{local_repo.feat_branch}",
         target_branch=local_repo.package,
     )
     click.echo(f"PR#{pr.number} created. URL: {pr.html_url}")
