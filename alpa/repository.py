@@ -55,6 +55,10 @@ class LocalRepo:
     def package(self) -> str:
         return self.branch.lstrip(ALPA_FEAT_BRANCH_PREFIX)
 
+    @staticmethod
+    def get_feat_branch_of_package(package: str) -> str:
+        return ALPA_FEAT_BRANCH.format(pkgname=package)
+
     @property
     def feat_branch(self) -> str:
         return ALPA_FEAT_BRANCH.format(pkgname=self.package)
@@ -157,6 +161,13 @@ class LocalRepo:
         output += self._format_files_to_status(self.untracked_files, "Untracked files:")
         return output
 
+    def branch_exists(self, branch: str) -> bool:
+        for ref in self.local_repo.references:
+            if ref.name == branch:
+                return True
+
+        return False
+
     def switch_to_package(self, package: str) -> None:
         if self.local_repo.is_dirty():
             click.echo(
@@ -165,13 +176,15 @@ class LocalRepo:
             )
             return None
 
+        feat_branch = self.get_feat_branch_of_package(package)
+        branch_to_switch = feat_branch if self.branch_exists(feat_branch) else package
         try:
-            click.echo(self.git_cmd.switch(package))
+            click.echo(self.git_cmd.switch(branch_to_switch))
         except GitCommandError:
             # switching to the package for the first time
             click.echo(f"Switching to the package {package} for the first time")
-            click.echo(self.git_cmd.fetch(UPSTREAM_NAME, package))
-            click.echo(self.git_cmd.switch(package))
+            click.echo(self.git_cmd.fetch(UPSTREAM_NAME, branch_to_switch))
+            click.echo(self.git_cmd.switch(branch_to_switch))
 
     def get_history_of_branch(self, branch: str, *params: List[str]) -> str:
         return self.git_cmd.log("--decorate", "--graph", *params, branch)
