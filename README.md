@@ -44,7 +44,23 @@ $ dnf install alpa
 
 ### Usage
 
-TODO
+#### alpa.yaml config file
+
+Example:
+
+```yaml
+---
+api_keys:
+  - repo:
+      name: test-repo
+      key: abcd
+  - repo:
+      name: another-repo
+      key: abcd2
+  - repo:
+      name: yet-another-repo
+      key: abcd3
+```
 
 ### Contributing
 

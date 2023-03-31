@@ -10,6 +10,7 @@ import click
 from click import UsageError
 from github import Github, Issue, PullRequest, UnknownObjectException
 
+from alpa.config.local_config import Config
 from alpa.constants import GH_API_TOKEN_NAME, GH_WRITE_ACCESS
 from alpa.messages import NO_GH_API_KEY_FOUND, RETURNING_CLONE_URL_MSG
 
@@ -89,20 +90,26 @@ class GithubRepo:
 
 
 class GithubAPI:
-    def __init__(self) -> None:
-        self._gh_api = Github(self._get_access_token())
+    def __init__(self, repo_name: str) -> None:
+        self._gh_api = Github(self._get_access_token(repo_name))
 
     @property
     def gh_user(self) -> str:
         return self._gh_api.get_user().login
 
     @staticmethod
-    def _get_access_token() -> str:
-        access_token = getenv(GH_API_TOKEN_NAME)
-        if access_token is None:
+    def _get_access_token(repo_name: str) -> str:
+        access_token_env = getenv(GH_API_TOKEN_NAME)
+        if access_token_env is not None:
+            return access_token_env
+
+        # accessing config file here since it does not make sense to do it elsewhere,
+        # but in the future the config will be useful in many places
+        access_token_config = Config.get_config(repo_name)
+        if access_token_config is None:
             raise UsageError(NO_GH_API_KEY_FOUND.format(token=GH_API_TOKEN_NAME))
 
-        return access_token
+        return access_token_config.gh_api_token
 
     def get_repo(self, namespace: str, repo_name: str) -> GithubRepo:
         return GithubRepo(self._gh_api, namespace, repo_name)

@@ -4,10 +4,9 @@ File for really long messages.
 
 
 NO_GH_API_KEY_FOUND = (
-    "No GitHub API key found. Please set the "
-    "{token} environment variable and pass "
-    "the GitHub API token to it. For more information please "
-    "see (link TODO)"
+    "No GitHub API key found. Please set the {token} environment variable and"
+    " pass the GitHub API token to it or set it in alpa.yaml config file. \n"
+    "For more information please see (link TODO)"
 )
 
 CLONED_REPO_IS_NOT_FORK = (

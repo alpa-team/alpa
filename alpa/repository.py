@@ -257,8 +257,8 @@ class AlpaRepo(LocalRepo):
     def __init__(self, repo_path: Path, gh_api: Optional[GithubAPI] = None) -> None:
         super().__init__(repo_path)
 
-        self.gh_api = gh_api or GithubAPI()
         namespace, repo_name = self._get_full_reponame().split("/")
+        self.gh_api = gh_api or GithubAPI(repo_name)
         self.gh_repo = self.gh_api.get_repo(namespace, repo_name)
 
     def create_package(self, package: str) -> None:
@@ -302,7 +302,7 @@ class AlpaRepo(LocalRepo):
         repo_path = urlparse(url.split("@")[-1]).path
         parsed_repo_path = repo_path.strip("/").strip(".git")
         namespace, repo_name = parsed_repo_path.split("/")
-        api = GithubAPI()
+        api = GithubAPI(repo_name)
         gh_repo = api.get_repo(namespace, repo_name)
         if not gh_repo.is_fork():
             raise UsageError(CLONED_REPO_IS_NOT_FORK)
