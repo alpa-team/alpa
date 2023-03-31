@@ -179,12 +179,16 @@ class LocalRepo:
         feat_branch = self.get_feat_branch_of_package(package)
         branch_to_switch = feat_branch if self.branch_exists(feat_branch) else package
         try:
-            click.echo(self.git_cmd.switch(branch_to_switch))
+            click.echo(
+                self.git_cmd.switch(branch_to_switch).replace("branch", "package")
+            )
         except GitCommandError:
             # switching to the package for the first time
             click.echo(f"Switching to the package {package} for the first time")
-            click.echo(self.git_cmd.fetch(UPSTREAM_NAME, branch_to_switch))
-            click.echo(self.git_cmd.switch(branch_to_switch))
+            click.echo(self.git_cmd.fetch(ORIGIN_NAME, branch_to_switch))
+            click.echo(
+                self.git_cmd.switch(branch_to_switch).replace("branch", "package")
+            )
 
     def get_history_of_branch(self, branch: str, *params: List[str]) -> str:
         return self.git_cmd.log("--decorate", "--graph", *params, branch)
