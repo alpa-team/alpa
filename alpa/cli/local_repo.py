@@ -93,6 +93,7 @@ def push(pull_request: bool) -> None:
     local_repo.push(local_repo.branch)
 
     if not pull_request:
+        local_repo.git_cmd.branch("-d", local_repo.feat_branch)
         return
 
     alpa = AlpaRepo(repo_path)
@@ -106,6 +107,10 @@ def push(pull_request: bool) -> None:
         target_branch=local_repo.package,
     )
     click.echo(f"PR#{pr.number} created. URL: {pr.html_url}")
+
+    # go from feat branch to package branch
+    local_repo.git_cmd.switch(local_repo.package)
+    local_repo.git_cmd.branch("-D", local_repo.feat_branch)
 
 
 @click.command("pull")
