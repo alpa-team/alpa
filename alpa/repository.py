@@ -8,7 +8,7 @@ from pathlib import Path
 import re
 from subprocess import call
 from tempfile import NamedTemporaryFile
-from typing import List, Optional
+from typing import List, Optional, Iterable
 from urllib.parse import urlparse
 
 from click import UsageError, ClickException
@@ -63,6 +63,16 @@ class LocalRepo:
     def feat_branch(self) -> str:
         return ALPA_FEAT_BRANCH.format(pkgname=self.package)
 
+    @staticmethod
+    def _get_relevant_remote_refs(remote_refs: Iterable[str]) -> list[str]:
+        relevant_refs = []
+        for ref in remote_refs:
+            parsed_ref = ref.split("/")[-1]
+            if not parsed_ref.startswith(ALPA_FEAT_BRANCH_PREFIX):
+                relevant_refs.append(parsed_ref)
+
+        return relevant_refs
+
     def show_remote_branches(self, remote: str) -> List[str]:
         lines = [
             line.strip()
@@ -103,11 +113,13 @@ class LocalRepo:
         refs_without_main = filter(
             lambda ref: ref != "main", self.show_remote_branches(UPSTREAM_NAME)
         )
+        relevant_refs = self._get_relevant_remote_refs(refs_without_main)
+
         if regex == "":
-            return list(refs_without_main)
+            return list(relevant_refs)
 
         pattern = re.compile(regex)
-        return [ref for ref in refs_without_main if pattern.match(ref)]
+        return [ref for ref in relevant_refs if pattern.match(ref)]
 
     def _is_repo_in_predefined_state(self) -> bool:
         remotes_name_set = {remote.name for remote in self.local_repo.remotes}
