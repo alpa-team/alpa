@@ -9,10 +9,19 @@ NO_GH_API_KEY_FOUND = (
     "For more information please see (link TODO)"
 )
 
+NO_PERMISSION_FOR_ALPA_REPO = (
+    "You don't have write permission to this repository. Please fork this Alpa "
+    "repository and work with your fork. Cloning a fork repo is done with "
+    "`--fork` flag. e.g. `alpa clone --fork my-fork-repo`"
+)
 CLONED_REPO_IS_NOT_FORK = (
-    "The url of GitHub repository isn't fork "
-    "(does not have upstream). Please provide repository which is "
-    "a forked form Alpa repository."
+    "You are trying to clone repository which is not a fork! Clone a fork "
+    "repository or do the clone command without `--fork` flag."
+)
+CLONED_REPO_IS_FORK = (
+    "The url of GitHub repository is a fork. Please provide repository which "
+    "is not a forked form Alpa repository or specify the clone command with "
+    "the `--fork` flag."
 )
 
 NO_WRITE_ACCESS_ERR = (

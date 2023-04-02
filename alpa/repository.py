@@ -29,6 +29,8 @@ from alpa.messages import (
     CLONED_REPO_IS_NOT_FORK,
     NO_WRITE_ACCESS_ERR,
     NOT_IN_PREDEFINED_STATE,
+    CLONED_REPO_IS_FORK,
+    NO_PERMISSION_FOR_ALPA_REPO,
 )
 
 
@@ -42,6 +44,10 @@ class LocalRepo:
 
         if not self._is_repo_in_predefined_state():
             raise ClickException(NOT_IN_PREDEFINED_STATE)
+
+        # do it after predefined state is checked since this depends on it
+        # (see comment in the _should_be_fork)
+        self.remote_name = UPSTREAM_NAME if self._should_be_fork() else ORIGIN_NAME
 
     @property
     def remote_associated_with_current_branch(self) -> str:
@@ -109,9 +115,9 @@ class LocalRepo:
         return [line.split()[0] for line in lines_with_remote_branches]
 
     def get_packages(self, regex: str) -> List[str]:
-        # self.local_repo.remote(name=UPSTREAM_NAME).refs don't work on every case
+        # self.local_repo.remote(name=self.remote_name).refs don't work on every case
         refs_without_main = filter(
-            lambda ref: ref != "main", self.show_remote_branches(UPSTREAM_NAME)
+            lambda ref: ref != "main", self.show_remote_branches(self.remote_name)
         )
         relevant_refs = self._get_relevant_remote_refs(refs_without_main)
 
@@ -123,7 +129,14 @@ class LocalRepo:
 
     def _is_repo_in_predefined_state(self) -> bool:
         remotes_name_set = {remote.name for remote in self.local_repo.remotes}
-        return remotes_name_set == {ORIGIN_NAME, UPSTREAM_NAME}
+        return remotes_name_set == {ORIGIN_NAME, UPSTREAM_NAME} or remotes_name_set == {
+            ORIGIN_NAME
+        }
+
+    def _should_be_fork(self) -> bool:
+        remotes_name_set = {remote.name for remote in self.local_repo.remotes}
+        # if repo is prepared via alpa-cli, fork should have 2 remotes and non-fork 1
+        return len(remotes_name_set) > 1
 
     @property
     def untracked_files(self) -> list[str]:
@@ -197,7 +210,7 @@ class LocalRepo:
         except GitCommandError:
             # switching to the package for the first time
             click.echo(f"Switching to the package {package} for the first time")
-            click.echo(self.git_cmd.fetch(ORIGIN_NAME, branch_to_switch))
+            click.echo(self.git_cmd.fetch(self.remote_name, branch_to_switch))
             click.echo(
                 self.git_cmd.switch(branch_to_switch).replace("branch", "package")
             )
@@ -244,14 +257,15 @@ class LocalRepo:
         self.git_cmd.add(files)
 
     def pull(self, branch: str) -> None:
-        click.echo(self.git_cmd.pull(UPSTREAM_NAME, branch))
+        click.echo(self.git_cmd.pull(self.remote_name, branch))
 
     def push(self, branch: str) -> None:
+        # you always want to push to origin, even from a fork
         click.echo(self.git_cmd.push(ORIGIN_NAME, branch))
 
     def _get_full_reponame(self) -> str:
         for remote in self.local_repo.remotes:
-            if remote.name == ORIGIN_NAME:
+            if remote.name == self.remote_name:
                 return remote.url.split(":")[-1].rstrip(".git")
 
         return ""
@@ -280,12 +294,12 @@ class AlpaRepo(LocalRepo):
 
         self.git_cmd.switch(MAIN_BRANCH)
         self.git_cmd.switch("-c", package)
-        self.git_cmd.push(UPSTREAM_NAME, package)
+        self.git_cmd.push(self.remote_name, package)
         click.echo(f"Package {package} created")
 
     def request_package(self, package_name: str) -> None:
-        upstream = self.gh_repo.get_root_repo()
-        upstream_namespace = upstream.namespace
+        ensured_upstream = self.gh_repo.get_root_repo()
+        upstream_namespace = ensured_upstream.namespace
         issue_repo = self.gh_api.get_repo(upstream_namespace, self.gh_repo.repo_name)
         issue = issue_repo.create_issue(
             PackageRequest.TITLE.value.format(package_name=package_name),
@@ -302,22 +316,42 @@ class AlpaRepo(LocalRepo):
 
     @staticmethod
     def _prepare_cloned_repo(local_repo: Repo, gh_repo: GithubRepo) -> None:
+        if not gh_repo.is_fork:
+            return
+
         Remote.create(local_repo, UPSTREAM_NAME, gh_repo.upstream_clone_url)
 
     @staticmethod
     def _get_repo_name_from_url(repo_url: str) -> str:
         return repo_url.split("/")[-1].rstrip(".git")
 
+    @staticmethod
+    def _check_for_permission_and_fork(
+        clone_fork: bool, gh_repo: GithubRepo
+    ) -> tuple[bool, str]:
+        if clone_fork and not gh_repo.is_fork:
+            return False, CLONED_REPO_IS_NOT_FORK
+
+        if not clone_fork and gh_repo.is_fork:
+            return False, CLONED_REPO_IS_FORK
+
+        if not gh_repo.is_fork and not gh_repo.has_write_access(gh_repo.api_user):
+            return False, NO_PERMISSION_FOR_ALPA_REPO
+
+        return True, ""
+
     @classmethod
-    def clone(cls, url: str) -> None:
+    def clone(cls, url: str, clone_fork: bool) -> None:
         # in case of `@` in url -> remove the `git@` prefix form it
         repo_path = urlparse(url.split("@")[-1]).path
         parsed_repo_path = repo_path.strip("/").strip(".git")
         namespace, repo_name = parsed_repo_path.split("/")
         api = GithubAPI(repo_name)
         gh_repo = api.get_repo(namespace, repo_name)
-        if not gh_repo.is_fork():
-            raise UsageError(CLONED_REPO_IS_NOT_FORK)
+
+        check_result, stderr = cls._check_for_permission_and_fork(clone_fork, gh_repo)
+        if not check_result:
+            raise UsageError(stderr)
 
         cloned_repo = Repo.clone_from(
             url, f"{getcwd()}/{cls._get_repo_name_from_url(url)}"

@@ -43,8 +43,13 @@ class GithubRepo:
 
         return upstream.clone_url
 
+    @property
     def is_fork(self) -> bool:
         return self._repo.fork
+
+    @property
+    def api_user(self) -> str:
+        return self._api.get_user().login
 
     def has_write_access(self, user: str) -> bool:
         for collaborator in self._repo.get_collaborators():
@@ -58,7 +63,7 @@ class GithubRepo:
         return False
 
     def get_upstream(self) -> Optional["GithubRepo"]:
-        if not self.is_fork():
+        if not self.is_fork:
             return None
 
         namespace, repo_name = self._repo.source.full_name.split("/")

@@ -78,7 +78,7 @@ def add(files: List[str]) -> None:
     help="This will create pull request on GitHub for you.",
 )
 def push(pull_request: bool) -> None:
-    """Pushes your commited changes to the upstream so you can make PR"""
+    """Pushes your commited changes to the Alpa repo so you can make PR"""
     repo_path = Path(getcwd())
     local_repo = LocalRepo(repo_path)
 
@@ -115,7 +115,7 @@ def push(pull_request: bool) -> None:
 
 @click.command("pull")
 def pull() -> None:
-    """Pull last recent changes of package you are on from upstream"""
+    """Pull last recent changes of package you are on from Alpa repo"""
     local_repo = LocalRepo(Path(getcwd()))
     local_repo.pull(local_repo.branch)
 

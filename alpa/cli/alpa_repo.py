@@ -31,5 +31,5 @@ def delete(name: str) -> None:
 @click.command("request-package")
 @pkg_name
 def request_package(name: str) -> None:
-    """Request new branch for new package in upstream"""
+    """Request new branch for new package in Alpa repo"""
     raise NotImplementedError("Not implemented yet (1.0 goal)")

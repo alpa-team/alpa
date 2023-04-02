@@ -29,9 +29,10 @@ def entry_point() -> None:
 
 @entry_point.command("clone")
 @click.argument("url", type=str)
-def clone(url: str) -> None:
+@click.option("--fork", is_flag=True, default=False)
+def clone(url: str, fork: bool) -> None:
     """Clone and prepare Alpa repository"""
-    AlpaRepo.clone(url)
+    AlpaRepo.clone(url, fork)
 
 
 entry_point.add_command(create)
