@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pyalpa"
-version = "0.3.2"
+version = "0.4.0"
 description = "Integration tool with Alpa repository"
 authors = ["Jiri Kyjovsky <j1.kyjovsky@gmail.com>"]
 maintainers = ["Jiří Kyjovský <j1.kyjovsky@gmail.com>"]
@@ -13,7 +13,7 @@ packages = [{ include = "alpa" }]
 
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 click = ">=8.0.0"
 gitpython = ">=3.0"
 pygithub = ">=1.4"
