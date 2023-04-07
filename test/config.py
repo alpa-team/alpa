@@ -1,22 +1,23 @@
 METADATA_CONFIG_ALL_KEYS = """
-name: some_pkg
+---
+autoupdate:
+  upstream_pkg_name: some_package
+  anytia_backend: pypi
 
-autoupdate: true
+  targets_notify_on_fail:
+    - f36
+    - centos
 
 maintainers:
-  naruto: narutothebest@konoha.jp
-  random_guy: 123@random.r
-
-upstream:
-  source_url: some-url
-  ref: 1.1.1
+  - user:
+      nick: naruto
+      email: narutothebest@konoha.jp
+  - user:
+      nick: random_guy
+      email: 123@random.r
 
 targets:
   - f37
-  - f36
-  - centos
-
-targets_notify_on_fail:
   - f36
   - centos
 
@@ -25,23 +26,36 @@ arch:
   - s390x
 """
 
+
 METADATA_CONFIG_MANDATORY_ONLY_KEYS = """
-name: some_pkg
-
+---
 maintainers:
-  naruto: narutothebest@konoha.jp
-  random_guy: 123@random.r
-
-upstream:
-  source_url: some-url
-  ref: 1.1.1
+  - user:
+      nick: naruto
+      email: narutothebest@konoha.jp
+  - user:
+      nick: random_guy
+      email: 123@random.r
 
 targets:
   - f37
   - f36
   - centos
+"""
 
-targets_notify_on_fail:
-  - f36
-  - centos
+
+ALPA_CONFIG_MANDATORY_KEYS = """
+---
+repo_type: branch
+copr_owner: alpa-owner
+copr_repo: alpa-repo
+"""
+
+
+ALPA_CONFIG_ALL_KEYS = """
+---
+repo_type: branch
+copr_owner: alpa-owner
+copr_repo: alpa-repo
+allow_foreign_contributing: true
 """

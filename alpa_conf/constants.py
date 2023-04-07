@@ -1,19 +1,10 @@
-METADATA_FILE_NAMES = [".metadata", "metadata"]
-METADATA_SUFFIXES = ["yaml", "yml"]
-
-PACKIT_CONFIG_NAMES = [
-    ".packit.yaml",
-    ".packit.yml",
-    ".packit.json",
-    "packit.yaml",
-    "packit.yml",
-    "packit.json",
+METADATA_FILE_NAMES = [
+    ".metadata.yaml",
+    ".metadata.yml",
+    "metadata.yaml",
+    "metadata.yml",
 ]
 
-MANDATORY_KEYS = [
-    "name",
-    "maintainers",
-    "targets",
-    "targets_notify_on_fail",
-    {"upstream": ["source_url", "ref"]},
-]
+ALPA_CONFIG_FILE_NAMES = [".alpa.yaml", ".alpa.yml", "alpa.yaml", "alpa.yml"]
+
+USE_SUBCLASS = "Use subclass instead."

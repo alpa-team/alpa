@@ -2,94 +2,85 @@ from os import getcwd
 from pathlib import Path
 from typing import Optional
 
+from pydantic import EmailStr
+from pydantic.dataclasses import dataclass
 from yaml import safe_load
 
-from alpa_conf.constants import METADATA_FILE_NAMES, METADATA_SUFFIXES, MANDATORY_KEYS
-from alpa_conf.exceptions import AlpaConfException
+from alpa_conf.constants import METADATA_FILE_NAMES
+from alpa_conf.config_base import Config
 
 
-class Metadata:
-    def __init__(self, working_dir: Optional[Path] = None) -> None:
-        self.working_dir = working_dir if working_dir is not None else Path(getcwd())
-        self.metadata = self._load_metadata_config()
-        if not self.metadata:
-            raise FileNotFoundError("No metadata file found in package")
+@dataclass
+class User:
+    nick: str
+    email: EmailStr
 
-        result, missing = Metadata._mandatory_fields_check(self.metadata)
-        if not result:
-            raise AlpaConfException(f"The `{missing}` key is missing in metadata.yaml")
 
-    def _load_metadata_config(self) -> dict:
-        for file_name in METADATA_FILE_NAMES:
-            for suffix in METADATA_SUFFIXES:
-                full_path = self.working_dir / f"{file_name}.{suffix}"
-                if not full_path.is_file():
-                    continue
+@dataclass
+class Autoupdate:
+    upstream_pkg_name: str
+    anytia_backend: str  # TODO: anytia backend enum
+    targets_notify_on_fail: set[str]
 
-                with open(full_path) as meta_file:
-                    return safe_load(meta_file.read())
 
-        return {}
+class MetadataConfig(Config):
+    def __init__(
+        self,
+        autoupdate: Optional[Autoupdate],
+        maintainers: list[User],
+        targets: set[str],
+        arch: set[str],
+    ) -> None:
+        self.autoupdate = autoupdate
+        self.maintainers = maintainers
+        self.targets = targets
+        self.arch = arch
 
     @staticmethod
-    def _mandatory_fields_check_rec(
-        dict_to_test: dict, mandatory_keys: list
-    ) -> tuple[bool, str]:
-        for key_or_dict in mandatory_keys:
-            if isinstance(key_or_dict, str):
-                if key_or_dict not in dict_to_test.keys():
-                    return False, key_or_dict
-                else:
-                    continue
-
-            for key in key_or_dict.keys():
-                if dict_to_test.get(key, None) is None:
-                    return False, key
-
-                result, missing = Metadata._mandatory_fields_check_rec(
-                    dict_to_test[key], list(key_or_dict.values())[0]
-                )
-                if not result:
-                    return False, missing
-
-        return True, ""
+    def _fill_autoupdate_dataclass(d: dict) -> Autoupdate:
+        targets_notify_on_fail = set(d.pop("targets_notify_on_fail", []))
+        return Autoupdate(**d, targets_notify_on_fail=targets_notify_on_fail)
 
     @classmethod
-    def _mandatory_fields_check(cls, dict_to_test: dict) -> tuple[bool, str]:
-        return cls._mandatory_fields_check_rec(dict_to_test, MANDATORY_KEYS)
+    def _fill_metadata_from_dict(cls, d: dict) -> "MetadataConfig":
+        autoupdate = d.get("autoupdate")
+        autoupdate_dataclass = None
+        if autoupdate is not None:
+            autoupdate_dataclass = cls._fill_autoupdate_dataclass(autoupdate)
 
-    @property
-    def maintainers(self) -> list[str]:
-        return list(self.metadata["maintainers"].keys())
+        maintainers = cls._check_for_mandatory_key(d, "maintainers", "metadata.yaml")
+        users_list = []
+        for maintainer_dict in maintainers:
+            maintainer = cls._check_for_mandatory_key(
+                maintainer_dict, "user", "metadata.yaml", "maintainers.user"
+            )
+            users_list.append(User(**maintainer))
 
-    @property
-    def maintainer_email_dict(self) -> dict[str, str]:
-        return self.metadata["maintainers"]
+        targets = cls._check_for_mandatory_key(d, "targets", "metadata.yaml")
 
-    @property
-    def upstream_source_url(self) -> str:
-        return self.metadata["upstream"]["source_url"]
+        return MetadataConfig(
+            autoupdate=autoupdate_dataclass,
+            maintainers=users_list,
+            targets=set(targets),
+            arch=set(d.get("arch", ["x86_64"])),
+        )
 
-    @property
-    def upstream_ref(self) -> str:
-        return self.metadata["upstream"]["ref"]
+    @classmethod
+    def _load_metadata_config(cls, working_dir: Path) -> Optional["MetadataConfig"]:
+        config_file_path = cls.get_config_file_path(working_dir, METADATA_FILE_NAMES)
+        if config_file_path is None:
+            return None
 
-    @property
-    def autoupdate(self) -> bool:
-        return self.metadata.get("autoupdate", False)
+        with open(config_file_path) as meta_file:
+            return cls._fill_metadata_from_dict(safe_load(meta_file.read()))
 
-    @property
-    def targets(self) -> set[str]:
-        return set(self.metadata["targets"])
+    @classmethod
+    def get_config(cls, working_dir: Optional[Path] = None) -> "MetadataConfig":
+        if working_dir is None:
+            working_dir = Path(getcwd())
 
-    @property
-    def targets_notify_on_fail(self) -> set[str]:
-        return set(self.metadata.get("targets_notify_on_fail", []))
+        metadata_data_class = cls._load_metadata_config(working_dir)
+        if metadata_data_class is None:
+            raise FileNotFoundError("No metadata file found in package")
 
-    @property
-    def arch(self) -> set[str]:
-        return set(self.metadata.get("arch", ["x86_64"]))
-
-    @property
-    def pkg_name(self) -> str:
-        return self.metadata["name"]
+        return metadata_data_class
