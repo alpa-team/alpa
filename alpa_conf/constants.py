@@ -9,11 +9,3 @@ PACKIT_CONFIG_NAMES = [
     "packit.yml",
     "packit.json",
 ]
-
-MANDATORY_KEYS = [
-    "name",
-    "maintainers",
-    "targets",
-    "targets_notify_on_fail",
-    {"upstream": ["source_url", "ref"]},
-]

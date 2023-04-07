@@ -1,16 +1,88 @@
 from pathlib import Path
-from unittest.mock import patch, mock_open, MagicMock
+from unittest.mock import patch, mock_open
 
 import pytest
+from pydantic.dataclasses import dataclass
 from pyfakefs.fake_filesystem import FakeFilesystem
 from yaml import safe_load
 
-from alpa_conf.constants import MANDATORY_KEYS
-from alpa_conf.metadata import Metadata
+from alpa_conf.exceptions import AlpaConfException
+from alpa_conf.metadata import MetadataConfig, User
 from test.config import METADATA_CONFIG_ALL_KEYS, METADATA_CONFIG_MANDATORY_ONLY_KEYS
 
 
 class TestMetadata:
+    @pytest.mark.parametrize(
+        "d",
+        [
+            pytest.param(
+                {
+                    "upstream_pkg_name": "some_package",
+                    "anytia_backend": "pypi",
+                    "targets_notify_on_fail": ["f36", "centos"],
+                }
+            ),
+            pytest.param(
+                {
+                    "upstream_pkg_name": "some_package",
+                    "anytia_backend": "pypi",
+                }
+            ),
+        ],
+    )
+    def test_fill_autoupdate_dataclass(self, d):
+        result = MetadataConfig._fill_autoupdate_dataclass(d)
+        assert result.upstream_pkg_name == "some_package"
+        assert result.anytia_backend == "pypi"
+        if result.targets_notify_on_fail:
+            assert result.targets_notify_on_fail == {"f36", "centos"}
+
+    @pytest.mark.parametrize(
+        "d, missing",
+        [
+            pytest.param({"upstream_pkg_name": "some_package"}, "anytia_backend"),
+            pytest.param({"anytia_backend": "pypi"}, "upstream_pkg_name"),
+        ],
+    )
+    def test_fill_autoupdate_dataclass_fail(self, d, missing):
+        with pytest.raises(TypeError, match=missing):
+            MetadataConfig._fill_autoupdate_dataclass(d)
+
+    @pytest.mark.parametrize(
+        "raw_yaml",
+        [
+            pytest.param(METADATA_CONFIG_ALL_KEYS),
+            pytest.param(METADATA_CONFIG_MANDATORY_ONLY_KEYS),
+        ],
+    )
+    def test_fill_metadata_from_dict(self, raw_yaml):
+        MetadataConfig._fill_metadata_from_dict(safe_load(raw_yaml))
+
+    @pytest.mark.parametrize(
+        "d, missing",
+        [
+            pytest.param({"targets": ["f37", "f38"]}, "maintainers"),
+            pytest.param(
+                {
+                    "maintainers": [
+                        {"user": {"nick": "naruto", "email": "narutothebest@konoha.jp"}}
+                    ]
+                },
+                "targets",
+            ),
+            pytest.param(
+                {
+                    "maintainers": [{}],
+                    "targets": ["f33"],
+                },
+                "maintainers.user",
+            ),
+        ],
+    )
+    def test_fill_metadata_from_dict_fail(self, d, missing):
+        with pytest.raises(AlpaConfException, match=missing):
+            MetadataConfig._fill_metadata_from_dict(d)
+
     @pytest.mark.parametrize(
         "metadata_config, path, result",
         [
@@ -24,46 +96,14 @@ class TestMetadata:
         self, fs: FakeFilesystem, metadata_config, path, result
     ):
         fs.create_file(path, contents="test")
-        metadata_instance = MagicMock(working_dir=Path("/test"))
 
         with patch("builtins.open", mock_open(read_data=metadata_config)):
-            ret = Metadata._load_metadata_config(metadata_instance)
+            ret = MetadataConfig._load_metadata_config(Path("/test"))
 
         if result:
-            assert ret
+            assert ret is not None
         else:
-            assert not ret
-
-    @pytest.mark.parametrize(
-        "dict_to_test, result",
-        [
-            pytest.param(
-                {
-                    "name": ...,
-                    "maintainers": ...,
-                    "targets": ...,
-                    "targets_notify_on_fail": ...,
-                    "upstream": {"source_url": ..., "ref": ...},
-                },
-                True,
-            ),
-            pytest.param(
-                {"maintainers": ..., "targets": ..., "targets_notify_on_fail": ...},
-                False,
-            ),
-        ],
-    )
-    def test_mandatory_fields_check(self, dict_to_test, result):
-        res, _ = Metadata._mandatory_fields_check(dict_to_test)
-        assert res == result
-
-    @patch.object(Metadata, "_mandatory_fields_check")
-    @patch.object(Metadata, "_load_metadata_config")
-    def test_maintainers(self, mock_load_metadata_config, mock_mandatory_fields_check):
-        mock_load_metadata_config.return_value = safe_load(METADATA_CONFIG_ALL_KEYS)
-        mock_mandatory_fields_check.return_value = True, ""
-
-        assert Metadata().maintainers == ["naruto", "random_guy"]
+            assert ret is None
 
     @pytest.mark.parametrize(
         "metadata_config",
@@ -72,41 +112,38 @@ class TestMetadata:
             pytest.param(METADATA_CONFIG_MANDATORY_ONLY_KEYS),
         ],
     )
-    @patch.object(Metadata, "_mandatory_fields_check")
-    @patch.object(Metadata, "_load_metadata_config")
-    def test_content_in_config_file(
-        self, mock_load_metadata_config, mock_mandatory_fields_check, metadata_config
-    ):
-        mock_load_metadata_config.return_value = safe_load(metadata_config)
-        mock_mandatory_fields_check.return_value = True, ""
+    @patch.object(MetadataConfig, "_load_metadata_config")
+    def test_content_in_config_file(self, mock_load_metadata_config, metadata_config):
+        mock_load_metadata_config.return_value = (
+            MetadataConfig._fill_metadata_from_dict(safe_load(metadata_config))
+        )
 
-        metadata_cls = Metadata()
+        metadata = MetadataConfig.get_config()
 
-        assert metadata_cls.maintainer_email_dict == {
-            "naruto": "narutothebest@konoha.jp",
-            "random_guy": "123@random.r",
-        }
-        assert metadata_cls.pkg_name == "some_pkg"
-        assert metadata_cls.upstream_source_url == "some-url"
-        assert metadata_cls.upstream_ref == "1.1.1"
-        assert metadata_cls.targets == {"f36", "f37", "centos"}
-        assert metadata_cls.targets_notify_on_fail == {"f36", "centos"}
+        @dataclass
+        class UserCmp(User):
+            def __eq__(self, other):
+                return self.nick == other.nick and self.email == other.email
+
+        maintainers_cmp = [
+            UserCmp(user.nick, user.email) for user in metadata.maintainers
+        ]
+        assert maintainers_cmp[0] == UserCmp(
+            nick="naruto", email="narutothebest@konoha.jp"
+        )
+        assert maintainers_cmp[1] == UserCmp(nick="random_guy", email="123@random.r")
+
+        assert metadata.targets == {"f36", "f37", "centos"}
 
         if "autoupdate:" in metadata_config:
-            assert metadata_cls.autoupdate
+            assert metadata.autoupdate is not None
+            assert metadata.autoupdate.upstream_pkg_name == "some_package"
+            assert metadata.autoupdate.anytia_backend == "pypi"
+            assert metadata.autoupdate.targets_notify_on_fail == {"f36", "centos"}
         else:
-            assert not metadata_cls.autoupdate
+            assert metadata.autoupdate is None
 
         if "arch:" in metadata_config:
-            assert metadata_cls.arch == {"x86_64", "s390x"}
+            assert metadata.arch == {"x86_64", "s390x"}
         else:
-            assert metadata_cls.arch == {"x86_64"}
-
-    def test_be_aware_of_changes_in_mandatory_keys(self):
-        assert [
-            "name",
-            "maintainers",
-            "targets",
-            "targets_notify_on_fail",
-            {"upstream": ["source_url", "ref"]},
-        ] == MANDATORY_KEYS
+            assert metadata.arch == {"x86_64"}
