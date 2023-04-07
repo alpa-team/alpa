@@ -3,7 +3,7 @@ from pathlib import Path
 
 from yaml import dump
 
-from alpa_conf import MetadataConfig
+from alpa_conf import AlpaRepoConfig, MetadataConfig
 
 from alpa.constants import PACKIT_CONFIG_NAMES
 
@@ -13,6 +13,7 @@ class PackitConfig:
         self.package_name = package_name
         self.working_dir = Path(getcwd())
         self.metadata = MetadataConfig.get_config(self.working_dir)
+        self.alpa_repo_config = AlpaRepoConfig.get_config()
 
     def get_packit_config(self) -> dict:
         return {
@@ -30,12 +31,16 @@ class PackitConfig:
                     "job": "copr_build",
                     "trigger": "pull_request",
                     "targets": list(self.metadata.targets),
+                    "owner": self.alpa_repo_config.copr_owner,
+                    "project": f"{self.alpa_repo_config.copr_repo}-pull-requests",
                 },
                 {
                     "job": "copr_build",
                     "trigger": "commit",
                     "branch": self.package_name,
                     "targets": list(self.metadata.targets),
+                    "owner": self.alpa_repo_config.copr_owner,
+                    "project": self.alpa_repo_config.copr_repo,
                 },
             ],
         }

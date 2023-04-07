@@ -25,3 +25,12 @@ arch:
   - x86_64
   - s390x
 """
+
+
+ALPA_CONFIG_ALL_KEYS = """
+---
+repo_type: branch
+copr_owner: alpa-owner
+copr_repo: alpa-repo
+allow_foreign_contributing: true
+"""
