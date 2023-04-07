@@ -9,7 +9,7 @@ from typing import Optional
 
 import click
 import requests
-from alpa_conf.metadata import Metadata
+from alpa_conf import MetadataConfig
 from click import ClickException
 
 from alpa.repository import LocalRepo
@@ -18,7 +18,7 @@ from alpa.repository import LocalRepo
 class UpstreamIntegration(LocalRepo):
     def __init__(self, repo_path: Path) -> None:
         super().__init__(repo_path)
-        self.metadata = Metadata(repo_path)
+        self.metadata = MetadataConfig.get_config(repo_path)
         self.name_version = f"{self.package}-{self.metadata.upstream_ref}"
         self.spec_file = f"{self.package}.spec"
 

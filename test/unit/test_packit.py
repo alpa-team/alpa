@@ -4,27 +4,31 @@ from unittest.mock import patch
 import pytest
 from yaml import safe_load
 
-from alpa_conf.metadata import Metadata
+from alpa_conf import MetadataConfig
 from test.constants import METADATA_CONFIG_ALL_KEYS
 
 from alpa.config.packit import PackitConfig
 
 
 class TestPackitConfig:
-    @patch.object(Metadata, "_mandatory_fields_check")
-    @patch.object(Metadata, "_load_metadata_config")
-    def test_get_packit_config(
-        self, mock_load_metadata_config, mock_mandatory_fields_check
-    ):
-        mock_load_metadata_config.return_value = safe_load(METADATA_CONFIG_ALL_KEYS)
-        mock_mandatory_fields_check.return_value = True, ""
+    @patch.object(MetadataConfig, "get_config")
+    def test_get_packit_config(self, mock_get_config):
+        mock_get_config.return_value = MetadataConfig._fill_metadata_from_dict(
+            safe_load(METADATA_CONFIG_ALL_KEYS)
+        )
+        packit_config = PackitConfig("uwu").get_packit_config()
+        assert packit_config
+        assert packit_config.get("jobs")
+        for job in packit_config["jobs"]:
+            assert job.get("targets")
+            job["targets"] = sorted(list(job["targets"]))
 
-        assert PackitConfig("uwu").get_packit_config() == {
+        assert packit_config == {
             "specfile_path": "uwu.spec",
             "srpm_build_deps": ["pip"],
             "actions": {
                 "create-archive": [
-                    "pip install pyalpa alpa-conf",
+                    "pip install pyalpa",
                     'bash -c "alpa get-pkg-archive"',
                     'bash -c "ls -1 ./uwu-*.tar.gz"',
                 ],
@@ -33,13 +37,13 @@ class TestPackitConfig:
                 {
                     "job": "copr_build",
                     "trigger": "pull_request",
-                    "targets": list({"f36", "f37", "centos"}),
+                    "targets": sorted(list({"f36", "f37", "centos"})),
                 },
                 {
                     "job": "copr_build",
                     "trigger": "commit",
                     "branch": "uwu",
-                    "targets": list({"f36", "f37", "centos"}),
+                    "targets": sorted(list({"f36", "f37", "centos"})),
                 },
             ],
         }
@@ -53,8 +57,7 @@ class TestPackitConfig:
             pytest.param(["/some", "/thing", "/kakaka", "/home/user"], False),
         ],
     )
-    @patch.object(Metadata, "_mandatory_fields_check")
-    @patch.object(Metadata, "_load_metadata_config")
+    @patch.object(MetadataConfig, "_load_metadata_config")
     @patch.object(Path, "is_file")
     @patch.object(Path, "iterdir")
     def test_packit_config_file_exists(
@@ -62,7 +65,6 @@ class TestPackitConfig:
         mock_iterdir,
         mock_is_file,
         mock_load_metadata_config,
-        mock_mandatory_fields_check,
         dir_content,
         result,
     ):
@@ -70,6 +72,5 @@ class TestPackitConfig:
         mock_iterdir.return_value = [Path(path) for path in dir_content]
 
         mock_load_metadata_config.return_value = safe_load(METADATA_CONFIG_ALL_KEYS)
-        mock_mandatory_fields_check.return_value = True, ""
 
         assert PackitConfig("uwu").packit_config_file_exists() == result

@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import List
 
 import click
-from alpa_conf.metadata import Metadata
+from alpa_conf import MetadataConfig
 from click import ClickException, Choice
 
 from alpa.config.packit import PackitConfig
@@ -165,7 +165,7 @@ def create_packit_config(override: bool) -> None:
         )
 
 
-def _get_chroots_to_build(meta: Metadata, distros: list[str]) -> list[str]:
+def _get_chroots_to_build(meta: MetadataConfig, distros: list[str]) -> list[str]:
     chroots = []
     for arch in meta.arch:
         for distro in distros:
@@ -187,7 +187,7 @@ def mockbuild(chroot: str) -> None:
     Builds for all chroots specified in metadata.yaml. Can be overriden by --chroot
      option which does build against one specified chroot.
     """
-    meta = Metadata()
+    meta = MetadataConfig.get_config()
     distros = [chroot] if chroot else list(meta.targets)
     chroots = _get_chroots_to_build(meta, distros)
     UpstreamIntegration(Path(getcwd())).mockbuild(chroots)
@@ -196,7 +196,6 @@ def mockbuild(chroot: str) -> None:
 @click.command("get-pkg-archive")
 def get_pkg_archive() -> None:
     """Gets archive from package config"""
-    meta = Metadata()
     UpstreamIntegration.download_upstream_source(
         meta.upstream_source_url, f"{meta.pkg_name}-{meta.upstream_ref}"
     )
