@@ -42,3 +42,20 @@ targets:
   - f36
   - centos
 """
+
+
+ALPA_CONFIG_MANDATORY_KEYS = """
+---
+repo_type: branch
+copr_owner: alpa-owner
+copr_repo: alpa-repo
+"""
+
+
+ALPA_CONFIG_ALL_KEYS = """
+---
+repo_type: branch
+copr_owner: alpa-owner
+copr_repo: alpa-repo
+allow_foreign_contributing: true
+"""

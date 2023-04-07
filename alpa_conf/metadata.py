@@ -1,13 +1,13 @@
 from os import getcwd
 from pathlib import Path
-from typing import Optional, NoReturn
+from typing import Optional
 
 from pydantic import EmailStr
 from pydantic.dataclasses import dataclass
 from yaml import safe_load
 
-from alpa_conf.constants import METADATA_FILE_NAMES, METADATA_SUFFIXES
-from alpa_conf.exceptions import AlpaConfException
+from alpa_conf.constants import METADATA_FILE_NAMES
+from alpa_conf.config_base import Config
 
 
 @dataclass
@@ -23,7 +23,7 @@ class Autoupdate:
     targets_notify_on_fail: set[str]
 
 
-class MetadataConfig:
+class MetadataConfig(Config):
     def __init__(
         self,
         autoupdate: Optional[Autoupdate],
@@ -37,10 +37,6 @@ class MetadataConfig:
         self.arch = arch
 
     @staticmethod
-    def _raise_missing_key(missing_key) -> NoReturn:
-        raise AlpaConfException(f"The `{missing_key}` key is missing in metadata.yaml")
-
-    @staticmethod
     def _fill_autoupdate_dataclass(d: dict) -> Autoupdate:
         targets_notify_on_fail = set(d.pop("targets_notify_on_fail", []))
         return Autoupdate(**d, targets_notify_on_fail=targets_notify_on_fail)
@@ -52,21 +48,15 @@ class MetadataConfig:
         if autoupdate is not None:
             autoupdate_dataclass = cls._fill_autoupdate_dataclass(autoupdate)
 
+        maintainers = cls._check_for_mandatory_key(d, "maintainers", "metadata.yaml")
         users_list = []
-        maintainers = d.get("maintainers")
-        if maintainers is None:
-            cls._raise_missing_key("maintainers")
-
         for maintainer_dict in maintainers:
-            maintainer = maintainer_dict.get("user")
-            if maintainer is None:
-                cls._raise_missing_key("maintainers.user")
-
+            maintainer = cls._check_for_mandatory_key(
+                maintainer_dict, "user", "metadata.yaml", "maintainers.user"
+            )
             users_list.append(User(**maintainer))
 
-        targets = d.get("targets")
-        if targets is None:
-            cls._raise_missing_key("targets")
+        targets = cls._check_for_mandatory_key(d, "targets", "metadata.yaml")
 
         return MetadataConfig(
             autoupdate=autoupdate_dataclass,
@@ -77,16 +67,12 @@ class MetadataConfig:
 
     @classmethod
     def _load_metadata_config(cls, working_dir: Path) -> Optional["MetadataConfig"]:
-        for file_name in METADATA_FILE_NAMES:
-            for suffix in METADATA_SUFFIXES:
-                full_path = working_dir / f"{file_name}.{suffix}"
-                if not full_path.is_file():
-                    continue
+        config_file_path = cls.get_config_file_path(working_dir, METADATA_FILE_NAMES)
+        if config_file_path is None:
+            return None
 
-                with open(full_path) as meta_file:
-                    return cls._fill_metadata_from_dict(safe_load(meta_file.read()))
-
-        return None
+        with open(config_file_path) as meta_file:
+            return cls._fill_metadata_from_dict(safe_load(meta_file.read()))
 
     @classmethod
     def get_config(cls, working_dir: Optional[Path] = None) -> "MetadataConfig":
