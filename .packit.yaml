@@ -8,7 +8,6 @@ jobs:
     trigger: pull_request
     targets:
       - fedora-all
-      - epel-9
     metadata:
       owner: "alpa-team"
       project: "alpa-pull-requests"
@@ -18,7 +17,6 @@ jobs:
     trigger: commit
     targets:
       - fedora-all
-      - epel-9
     metadata:
       owner: "alpa-team"
       project: "alpa"
