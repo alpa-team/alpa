@@ -13,10 +13,19 @@ ALPA_ISSUE_REPO_NAME = "issue-repo"
 ALPA_FEAT_BRANCH_PREFIX = "__feat_"
 ALPA_FEAT_BRANCH = ALPA_FEAT_BRANCH_PREFIX + "{pkgname}"
 
-GLOBAL_CFG_FILE = "/etc/vem.cfg"
-USER_CFG_FILE = "~/.config/vem.cfg"
+GLOBAL_CFG_FILE = "/etc/alpa.yaml"
+USER_CFG_FILE = "~/.config/alpa.yaml"
 # order is important! user cfg overrides global cfg
 CONFIG_FILE_LOCATIONS = [USER_CFG_FILE, GLOBAL_CFG_FILE]
+
+PACKIT_CONFIG_NAMES = [
+    ".packit.yaml",
+    ".packit.yml",
+    ".packit.json",
+    "packit.yaml",
+    "packit.yml",
+    "packit.json",
+]
 
 
 class PackageRequest(str, Enum):

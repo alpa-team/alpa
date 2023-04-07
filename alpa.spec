@@ -1,5 +1,5 @@
 Name:           alpa
-Version:        0.3.2
+Version:        0.4.0
 Release:        1%{?dist}
 Summary:        Integration tool with Alpa repository
 
@@ -15,6 +15,7 @@ BuildRequires:  python3-click
 BuildRequires:  python3-pygithub
 BuildRequires:  python3-GitPython
 BuildRequires:  python3-alpa-conf
+BuildRequires:  python3-specfile
 
 Requires:       mock
 

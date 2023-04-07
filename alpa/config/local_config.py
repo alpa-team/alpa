@@ -1,5 +1,3 @@
-# TODO: this is just skeleton for configuration
-
 from os.path import isfile
 from pathlib import Path
 from typing import Optional
@@ -10,8 +8,8 @@ from alpa.constants import CONFIG_FILE_LOCATIONS
 
 
 class Config:
-    def __init__(self, api_token: str) -> None:
-        pass
+    def __init__(self, gh_api_token: str) -> None:
+        self.gh_api_token = gh_api_token
 
     @staticmethod
     def _get_config_file_path() -> Optional[Path]:
@@ -23,7 +21,7 @@ class Config:
         return None
 
     @classmethod
-    def get_config(cls) -> Optional["Config"]:
+    def get_config(cls, repo_name: str) -> Optional["Config"]:
         cfg_file_path = cls._get_config_file_path()
         if cfg_file_path is None:
             return None
@@ -31,4 +29,8 @@ class Config:
         with open(cfg_file_path) as alpa_cfg_file:
             config_dict = safe_load(alpa_cfg_file)
 
-        return Config(**config_dict)
+        for item in config_dict["api_keys"]:
+            if item["repo"]["name"] == repo_name:
+                return Config(gh_api_token=item["repo"]["key"])
+
+        return None

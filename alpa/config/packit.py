@@ -3,15 +3,17 @@ from pathlib import Path
 
 from yaml import dump
 
-from alpa_conf.constants import PACKIT_CONFIG_NAMES
-from alpa_conf.metadata import Metadata
+from alpa_conf import AlpaRepoConfig, MetadataConfig
+
+from alpa.constants import PACKIT_CONFIG_NAMES
 
 
 class PackitConfig:
     def __init__(self, package_name: str) -> None:
         self.package_name = package_name
         self.working_dir = Path(getcwd())
-        self.metadata = Metadata()
+        self.metadata = MetadataConfig.get_config(self.working_dir)
+        self.alpa_repo_config = AlpaRepoConfig.get_config()
 
     def get_packit_config(self) -> dict:
         return {
@@ -19,7 +21,7 @@ class PackitConfig:
             "srpm_build_deps": ["pip"],
             "actions": {
                 "create-archive": [
-                    "pip install pyalpa alpa-conf",
+                    "pip install pyalpa",
                     'bash -c "alpa get-pkg-archive"',
                     f'bash -c "ls -1 ./{self.package_name}-*.tar.gz"',
                 ],
@@ -29,12 +31,16 @@ class PackitConfig:
                     "job": "copr_build",
                     "trigger": "pull_request",
                     "targets": list(self.metadata.targets),
+                    "owner": self.alpa_repo_config.copr_owner,
+                    "project": f"{self.alpa_repo_config.copr_repo}-pull-requests",
                 },
                 {
                     "job": "copr_build",
                     "trigger": "commit",
                     "branch": self.package_name,
                     "targets": list(self.metadata.targets),
+                    "owner": self.alpa_repo_config.copr_owner,
+                    "project": self.alpa_repo_config.copr_repo,
                 },
             ],
         }

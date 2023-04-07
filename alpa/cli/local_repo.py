@@ -8,8 +8,9 @@ from pathlib import Path
 from typing import List
 
 import click
-from alpa_conf.metadata import Metadata
+from alpa_conf import MetadataConfig
 from click import ClickException, Choice
+from specfile import Specfile
 
 from alpa.config.packit import PackitConfig
 from alpa.repository import LocalRepo, AlpaRepo
@@ -78,7 +79,7 @@ def add(files: List[str]) -> None:
     help="This will create pull request on GitHub for you.",
 )
 def push(pull_request: bool) -> None:
-    """Pushes your commited changes to the upstream so you can make PR"""
+    """Pushes your commited changes to the Alpa repo so you can make PR"""
     repo_path = Path(getcwd())
     local_repo = LocalRepo(repo_path)
 
@@ -93,6 +94,7 @@ def push(pull_request: bool) -> None:
     local_repo.push(local_repo.branch)
 
     if not pull_request:
+        local_repo.git_cmd.branch("-d", local_repo.feat_branch)
         return
 
     alpa = AlpaRepo(repo_path)
@@ -102,15 +104,19 @@ def push(pull_request: bool) -> None:
             "This PR was created automatically via alpa-cli for "
             f"user {alpa.gh_api.gh_user}"
         ),
-        source_branch=f"{alpa.gh_api.gh_user}:{local_repo.feat_branch}",
+        source_branch=f"{local_repo.feat_branch}",
         target_branch=local_repo.package,
     )
     click.echo(f"PR#{pr.number} created. URL: {pr.html_url}")
 
+    # go from feat branch to package branch
+    local_repo.git_cmd.switch(local_repo.package)
+    local_repo.git_cmd.branch("-D", local_repo.feat_branch)
+
 
 @click.command("pull")
 def pull() -> None:
-    """Pull last recent changes of package you are on from upstream"""
+    """Pull last recent changes of package you are on from Alpa repo"""
     local_repo = LocalRepo(Path(getcwd()))
     local_repo.pull(local_repo.branch)
 
@@ -160,7 +166,7 @@ def create_packit_config(override: bool) -> None:
         )
 
 
-def _get_chroots_to_build(meta: Metadata, distros: list[str]) -> list[str]:
+def _get_chroots_to_build(meta: MetadataConfig, distros: list[str]) -> list[str]:
     chroots = []
     for arch in meta.arch:
         for distro in distros:
@@ -182,7 +188,7 @@ def mockbuild(chroot: str) -> None:
     Builds for all chroots specified in metadata.yaml. Can be overriden by --chroot
      option which does build against one specified chroot.
     """
-    meta = Metadata()
+    meta = MetadataConfig.get_config()
     distros = [chroot] if chroot else list(meta.targets)
     chroots = _get_chroots_to_build(meta, distros)
     UpstreamIntegration(Path(getcwd())).mockbuild(chroots)
@@ -191,7 +197,20 @@ def mockbuild(chroot: str) -> None:
 @click.command("get-pkg-archive")
 def get_pkg_archive() -> None:
     """Gets archive from package config"""
-    meta = Metadata()
+    specfile_path = None
+    cwd = Path(getcwd())
+    for file in cwd.iterdir():
+        if str(file).endswith(".spec"):
+            specfile_path = file
+
+    if specfile_path is None:
+        raise ClickException(f"No specfile found in {cwd}")
+
+    specfile = Specfile(specfile_path)
+    with specfile.sources() as sources:
+        source0 = min(sources, key=lambda src: src.number)
+
     UpstreamIntegration.download_upstream_source(
-        meta.upstream_source_url, f"{meta.pkg_name}-{meta.upstream_ref}"
+        source0.expanded_location,
+        f"{specfile.expanded_name}-{specfile.expanded_version}",
     )
