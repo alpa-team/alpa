@@ -10,6 +10,7 @@ from typing import List
 import click
 from alpa_conf import MetadataConfig
 from click import ClickException, Choice
+from specfile import Specfile
 
 from alpa.config.packit import PackitConfig
 from alpa.repository import LocalRepo, AlpaRepo
@@ -196,6 +197,20 @@ def mockbuild(chroot: str) -> None:
 @click.command("get-pkg-archive")
 def get_pkg_archive() -> None:
     """Gets archive from package config"""
+    specfile_path = None
+    cwd = Path(getcwd())
+    for file in cwd.iterdir():
+        if str(file).endswith(".spec"):
+            specfile_path = file
+
+    if specfile_path is None:
+        raise ClickException(f"No specfile found in {cwd}")
+
+    specfile = Specfile(specfile_path)
+    with specfile.sources() as sources:
+        source0 = min(sources, key=lambda src: src.number)
+
     UpstreamIntegration.download_upstream_source(
-        meta.upstream_source_url, f"{meta.pkg_name}-{meta.upstream_ref}"
+        source0.expanded_location,
+        f"{specfile.expanded_name}-{specfile.expanded_version}",
     )

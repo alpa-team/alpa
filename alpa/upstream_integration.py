@@ -11,6 +11,7 @@ import click
 import requests
 from alpa_conf import MetadataConfig
 from click import ClickException
+from specfile import Specfile
 
 from alpa.repository import LocalRepo
 
@@ -19,8 +20,11 @@ class UpstreamIntegration(LocalRepo):
     def __init__(self, repo_path: Path) -> None:
         super().__init__(repo_path)
         self.metadata = MetadataConfig.get_config(repo_path)
-        self.name_version = f"{self.package}-{self.metadata.upstream_ref}"
-        self.spec_file = f"{self.package}.spec"
+        self.specfile = Specfile(Path(repo_path / f"{self.package}.spec"))
+        self.name_version = (
+            f"{self.specfile.expanded_name}-{self.specfile.expanded_version}"
+        )
+        self.nvr = f"{self.name_version}-{self.specfile.expanded_release}"
 
     @staticmethod
     def _find_srpm_file_from_mock_build(srpm_result_dir: Path) -> Optional[Path]:
@@ -46,7 +50,7 @@ class UpstreamIntegration(LocalRepo):
                 chroot,
                 "--buildsrpm",
                 "--spec",
-                self.spec_file,
+                self.specfile.path.name,
                 "--sources",
                 f"{source_file_name}.tar.gz",
                 "--resultdir",
@@ -92,12 +96,11 @@ class UpstreamIntegration(LocalRepo):
             archive.write(resp.content)
 
     def mockbuild(self, chroots: list[str]) -> None:
-        source_file_name = self.metadata.upstream_source_url.split("/")[-1].rstrip(
-            ".tar.gz"
-        )
-        self.download_upstream_source(
-            self.metadata.upstream_source_url, source_file_name
-        )
+        with self.specfile.sources() as sources:
+            source0 = min(sources, key=lambda src: src.number)
+
+        source_file_name = source0.expanded_filename.rstrip(".tar.gz")
+        self.download_upstream_source(source0.expanded_location, source_file_name)
         root_mock_result_dir = self._prepare_mock_result_dir(chroots)
 
         for chroot in chroots:
