@@ -49,6 +49,10 @@ class LocalRepo:
         # (see comment in the _should_be_fork)
         self.remote_name = UPSTREAM_NAME if self._should_be_fork() else ORIGIN_NAME
 
+        # lazy properties
+        self._namespace: Optional[str] = None
+        self._repo_name: Optional[str] = None
+
     @property
     def remote_associated_with_current_branch(self) -> str:
         return self.local_repo.active_branch.tracking_branch().remote_name
@@ -169,6 +173,22 @@ class LocalRepo:
     def files_to_be_committed(self) -> list[str]:
         return self._get_dirty_files(True)
 
+    @property
+    def namespace(self) -> str:
+        if self._namespace is not None:
+            return self._namespace
+
+        self._namespace = self.full_reponame().split("/")[0]
+        return self._namespace
+
+    @property
+    def repo_name(self) -> str:
+        if self._repo_name is not None:
+            return self._repo_name
+
+        self._repo_name = self.full_reponame().split("/")[1]
+        return self._repo_name
+
     @staticmethod
     def _format_files_to_status(files: list[str], msg: str) -> str:
         if not files:
@@ -263,7 +283,7 @@ class LocalRepo:
         # you always want to push to origin, even from a fork
         click.echo(self.git_cmd.push(ORIGIN_NAME, branch))
 
-    def _get_full_reponame(self) -> str:
+    def full_reponame(self) -> str:
         for remote in self.local_repo.remotes:
             if remote.name == self.remote_name:
                 return remote.url.split(":")[-1].rstrip(".git")
@@ -283,9 +303,8 @@ class AlpaRepo(LocalRepo):
     def __init__(self, repo_path: Path, gh_api: Optional[GithubAPI] = None) -> None:
         super().__init__(repo_path)
 
-        namespace, repo_name = self._get_full_reponame().split("/")
-        self.gh_api = gh_api or GithubAPI(repo_name)
-        self.gh_repo = self.gh_api.get_repo(namespace, repo_name)
+        self.gh_api = gh_api or GithubAPI(self.repo_name)
+        self.gh_repo = self.gh_api.get_repo(self.namespace, self.repo_name)
 
     def create_package(self, package: str) -> None:
         upstream = self.gh_repo.get_upstream()
