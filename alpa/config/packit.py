@@ -3,8 +3,9 @@ from pathlib import Path
 
 from yaml import dump
 
-from alpa_conf.constants import PACKIT_CONFIG_NAMES
 from alpa_conf.metadata import Metadata
+
+from alpa.constants import PACKIT_CONFIG_NAMES
 
 
 class PackitConfig:

@@ -18,6 +18,15 @@ USER_CFG_FILE = "~/.config/alpa.yaml"
 # order is important! user cfg overrides global cfg
 CONFIG_FILE_LOCATIONS = [USER_CFG_FILE, GLOBAL_CFG_FILE]
 
+PACKIT_CONFIG_NAMES = [
+    ".packit.yaml",
+    ".packit.yml",
+    ".packit.json",
+    "packit.yaml",
+    "packit.yml",
+    "packit.json",
+]
+
 
 class PackageRequest(str, Enum):
     TITLE = "[alpa] New request for package {package_name}"
