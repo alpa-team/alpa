@@ -63,7 +63,7 @@ class LocalRepo:
 
     @property
     def package(self) -> str:
-        return self.branch.lstrip(ALPA_FEAT_BRANCH_PREFIX)
+        return self.branch.removeprefix(ALPA_FEAT_BRANCH_PREFIX)
 
     @staticmethod
     def get_feat_branch_of_package(package: str) -> str:
@@ -286,7 +286,7 @@ class LocalRepo:
     def full_reponame(self) -> str:
         for remote in self.local_repo.remotes:
             if remote.name == self.remote_name:
-                return remote.url.split(":")[-1].rstrip(".git")
+                return remote.url.split(":")[-1].removesuffix(".git")
 
         return ""
 
@@ -342,7 +342,7 @@ class AlpaRepo(LocalRepo):
 
     @staticmethod
     def _get_repo_name_from_url(repo_url: str) -> str:
-        return repo_url.split("/")[-1].rstrip(".git")
+        return repo_url.split("/")[-1].removesuffix(".git")
 
     @staticmethod
     def _check_for_permission_and_fork(
