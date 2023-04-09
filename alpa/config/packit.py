@@ -16,6 +16,35 @@ class PackitConfig:
         self.alpa_repo_config = AlpaRepoConfig.get_config()
 
     def get_packit_config(self) -> dict:
+        jobs = [
+            {
+                "job": "copr_build",
+                "trigger": "pull_request",
+                "targets": list(self.metadata.targets),
+                "owner": self.alpa_repo_config.copr_owner,
+                "project": f"{self.alpa_repo_config.copr_repo}-pull-requests",
+            },
+            {
+                "job": "copr_build",
+                "trigger": "commit",
+                "branch": self.package_name,
+                "targets": list(self.metadata.targets),
+                "owner": self.alpa_repo_config.copr_owner,
+                "project": self.alpa_repo_config.copr_repo,
+            },
+        ]
+
+        if self.metadata.autoupdate is not None:
+            autoupdate_dict = {
+                "job": "copr_build",
+                "trigger": "commit",
+                "branch": f"__alpa_autoupdate_{self.package_name}",
+                "targets": list(self.metadata.targets),
+                "owner": self.alpa_repo_config.copr_owner,
+                "project": f"{self.alpa_repo_config.copr_repo}-pull-requests",
+            }
+            jobs.append(autoupdate_dict)
+
         return {
             "specfile_path": f"{self.package_name}.spec",
             "srpm_build_deps": ["pip"],
@@ -26,23 +55,7 @@ class PackitConfig:
                     f'bash -c "ls -1 ./{self.package_name}-*.tar.gz"',
                 ],
             },
-            "jobs": [
-                {
-                    "job": "copr_build",
-                    "trigger": "pull_request",
-                    "targets": list(self.metadata.targets),
-                    "owner": self.alpa_repo_config.copr_owner,
-                    "project": f"{self.alpa_repo_config.copr_repo}-pull-requests",
-                },
-                {
-                    "job": "copr_build",
-                    "trigger": "commit",
-                    "branch": self.package_name,
-                    "targets": list(self.metadata.targets),
-                    "owner": self.alpa_repo_config.copr_owner,
-                    "project": self.alpa_repo_config.copr_repo,
-                },
-            ],
+            "jobs": jobs,
         }
 
     def packit_config_file_exists(self) -> bool:

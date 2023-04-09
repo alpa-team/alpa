@@ -39,7 +39,7 @@ class LocalRepo:
         self.repo_path = repo_path
         # TODO: this will differ in the future with repo_path
         self.repo_root_path = repo_path
-        self.local_repo = Repo(str(self.repo_path))
+        self.local_repo = Repo(str(self.repo_path), search_parent_directories=True)
         self.git_cmd = self.local_repo.git
 
         if not self._is_repo_in_predefined_state():
@@ -297,6 +297,9 @@ class LocalRepo:
 
         packit_conf.create_packit_config()
         return True
+
+    def get_git_root(self) -> Optional[Path]:
+        return self.local_repo.working_tree_dir
 
 
 class AlpaRepo(LocalRepo):
