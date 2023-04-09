@@ -299,7 +299,7 @@ class LocalRepo:
         return True
 
     def get_git_root(self) -> Optional[Path]:
-        return self.local_repo.working_tree_dir
+        return Path(self.local_repo.working_tree_dir)
 
 
 class AlpaRepo(LocalRepo):
