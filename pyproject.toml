@@ -18,12 +18,13 @@ click = ">=8.0.0"
 gitpython = ">=3.0"
 pygithub = ">=1.4"
 pyyaml = ">=5.0"
-alpa-conf = ">=0.4.0"
 specfile = ">=0.13.0"
 
 
 [tool.poetry.dev-dependencies]
 pytest = ">=7.0.0"
+pyfakefs = ">=4.0.0"
+mypy = ">=0.900"
 
 
 [build-system]
@@ -31,5 +32,10 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 
+
 [tool.poetry.scripts]
 alpa = "alpa.cli.base:entry_point"
+
+
+[tool.mypy]
+plugins = ["pydantic.mypy"]
