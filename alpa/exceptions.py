@@ -4,3 +4,7 @@ class AlpaException(Exception):
     """
 
     pass
+
+
+class AlpaConfException(Exception):
+    pass

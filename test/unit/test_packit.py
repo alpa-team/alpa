@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock
 import pytest
 from yaml import safe_load
 
-from alpa_conf import AlpaRepoConfig, MetadataConfig
+from alpa.config import AlpaRepoConfig, MetadataConfig
 from test.constants import (
     METADATA_CONFIG_ALL_KEYS,
     ALPA_CONFIG_ALL_KEYS,
@@ -12,7 +12,7 @@ from test.constants import (
     ALPA_CONFIG_MANDATORY_KEYS,
 )
 
-from alpa.config.packit import PackitConfig
+from alpa.config import PackitConfig
 
 
 class TestPackitConfig:

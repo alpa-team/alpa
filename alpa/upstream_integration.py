@@ -9,7 +9,7 @@ from typing import Optional
 
 import click
 import requests
-from alpa_conf import MetadataConfig
+from alpa.config import MetadataConfig
 from click import ClickException
 from specfile import Specfile
 

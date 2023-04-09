@@ -1,3 +1,8 @@
+"""
+Class for local cli config
+"""
+
+
 from os.path import isfile
 from pathlib import Path
 from typing import Optional
@@ -7,7 +12,7 @@ from yaml import safe_load
 from alpa.constants import CONFIG_FILE_LOCATIONS
 
 
-class Config:
+class AlpaLocalConfig:
     def __init__(self, gh_api_token: str) -> None:
         self.gh_api_token = gh_api_token
 
@@ -21,7 +26,7 @@ class Config:
         return None
 
     @classmethod
-    def get_config(cls, repo_name: str) -> Optional["Config"]:
+    def get_config(cls, repo_name: str) -> Optional["AlpaLocalConfig"]:
         cfg_file_path = cls._get_config_file_path()
         if cfg_file_path is None:
             return None
@@ -31,6 +36,6 @@ class Config:
 
         for item in config_dict["api_keys"]:
             if item["repo"]["name"] == repo_name:
-                return Config(gh_api_token=item["repo"]["key"])
+                return AlpaLocalConfig(gh_api_token=item["repo"]["key"])
 
         return None
