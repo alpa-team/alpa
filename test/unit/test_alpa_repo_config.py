@@ -5,9 +5,9 @@ import pytest
 from pyfakefs.fake_filesystem import FakeFilesystem
 from yaml import safe_load
 
-from alpa_conf.alpa import AlpaRepoConfig
-from alpa_conf.exceptions import AlpaConfException
-from test.config import ALPA_CONFIG_MANDATORY_KEYS, ALPA_CONFIG_ALL_KEYS
+from alpa.exceptions import AlpaConfException
+from alpa.config import AlpaRepoConfig
+from test.constants import ALPA_CONFIG_MANDATORY_KEYS, ALPA_CONFIG_ALL_KEYS
 
 
 class TestAlpa:

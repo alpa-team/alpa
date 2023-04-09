@@ -6,9 +6,9 @@ from pydantic.dataclasses import dataclass
 from pyfakefs.fake_filesystem import FakeFilesystem
 from yaml import safe_load
 
-from alpa_conf.exceptions import AlpaConfException
-from alpa_conf.metadata import MetadataConfig, User
-from test.config import METADATA_CONFIG_ALL_KEYS, METADATA_CONFIG_MANDATORY_ONLY_KEYS
+from alpa.exceptions import AlpaConfException
+from alpa.config.metadata import MetadataConfig, User
+from test.constants import METADATA_CONFIG_ALL_KEYS, METADATA_CONFIG_MANDATORY_ONLY_KEYS
 
 
 class TestMetadata:

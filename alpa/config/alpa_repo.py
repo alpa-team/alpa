@@ -2,6 +2,7 @@
 Config class for Alpa repository.
 """
 
+
 import subprocess
 from enum import Enum
 from pathlib import Path
@@ -9,9 +10,9 @@ from typing import Optional
 
 from yaml import safe_load
 
-from alpa_conf.constants import ALPA_CONFIG_FILE_NAMES
-from alpa_conf.exceptions import AlpaConfException
-from alpa_conf.config_base import Config
+from alpa.constants import ALPA_CONFIG_FILE_NAMES
+from alpa.exceptions import AlpaConfException
+from alpa.config.base import Config
 
 
 class AlpaRepoType(str, Enum):

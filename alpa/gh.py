@@ -10,7 +10,7 @@ import click
 from click import UsageError
 from github import Github, Issue, PullRequest, UnknownObjectException
 
-from alpa.config.local_config import Config
+from alpa.config.alpa_local import AlpaLocalConfig
 from alpa.constants import GH_API_TOKEN_NAME, GH_WRITE_ACCESS
 from alpa.messages import NO_GH_API_KEY_FOUND, RETURNING_CLONE_URL_MSG
 
@@ -110,7 +110,7 @@ class GithubAPI:
 
         # accessing config file here since it does not make sense to do it elsewhere,
         # but in the future the config will be useful in many places
-        access_token_config = Config.get_config(repo_name)
+        access_token_config = AlpaLocalConfig.get_config(repo_name)
         if access_token_config is None:
             raise UsageError(NO_GH_API_KEY_FOUND.format(token=GH_API_TOKEN_NAME))
 

@@ -1,9 +1,14 @@
+"""
+Abstract config class
+"""
+
+
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Iterable, Optional, Any
 
-from alpa_conf.constants import USE_SUBCLASS
-from alpa_conf.exceptions import AlpaConfException
+from alpa.constants import USE_SUBCLASS
+from alpa.exceptions import AlpaConfException
 
 
 class Config(ABC):

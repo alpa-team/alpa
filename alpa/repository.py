@@ -15,7 +15,7 @@ from click import UsageError, ClickException
 import click
 from git import Repo, Remote, GitCommandError
 
-from alpa.config.packit import PackitConfig
+from alpa.config import PackitConfig
 from alpa.constants import (
     ALPA_FEAT_BRANCH,
     ALPA_FEAT_BRANCH_PREFIX,

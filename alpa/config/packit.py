@@ -1,9 +1,15 @@
+"""
+Class that generates packit.yaml config based on other configs like
+Alpa repo or package metadata config
+"""
+
+
 from os import getcwd
 from pathlib import Path
 
 from yaml import dump
 
-from alpa_conf import AlpaRepoConfig, MetadataConfig
+from alpa.config import AlpaRepoConfig, MetadataConfig
 
 from alpa.constants import PACKIT_CONFIG_NAMES
 

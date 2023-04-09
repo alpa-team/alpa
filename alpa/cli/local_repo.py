@@ -8,11 +8,10 @@ from pathlib import Path
 from typing import List
 
 import click
-from alpa_conf import MetadataConfig
 from click import ClickException, Choice
 from specfile import Specfile
 
-from alpa.config.packit import PackitConfig
+from alpa.config import MetadataConfig, PackitConfig
 from alpa.repository import LocalRepo, AlpaRepo
 from alpa.upstream_integration import UpstreamIntegration
 

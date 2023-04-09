@@ -14,7 +14,6 @@ BuildRequires:  pyproject-rpm-macros
 BuildRequires:  python3-click
 BuildRequires:  python3-pygithub
 BuildRequires:  python3-GitPython
-BuildRequires:  python3-alpa-conf
 BuildRequires:  python3-specfile
 
 Requires:       mock

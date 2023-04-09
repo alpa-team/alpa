@@ -1,3 +1,8 @@
+"""
+Config class for package metadata
+"""
+
+
 from os import getcwd
 from pathlib import Path
 from typing import Optional
@@ -6,8 +11,8 @@ from pydantic import EmailStr
 from pydantic.dataclasses import dataclass
 from yaml import safe_load
 
-from alpa_conf.constants import METADATA_FILE_NAMES
-from alpa_conf.config_base import Config
+from alpa.constants import METADATA_FILE_NAMES
+from alpa.config.base import Config
 
 
 @dataclass

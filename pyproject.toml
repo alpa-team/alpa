@@ -19,6 +19,8 @@ gitpython = ">=3.0"
 pygithub = ">=1.4"
 pyyaml = ">=5.0"
 specfile = ">=0.13.0"
+pydantic = ">=1.8"
+email-validator = ">=1.0"
 
 
 [tool.poetry.dev-dependencies]
