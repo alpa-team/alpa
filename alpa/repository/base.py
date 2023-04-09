@@ -3,38 +3,34 @@ Set of commands that helps with integration of Alpa
 repository.
 """
 import subprocess
+from abc import ABC, abstractmethod
 from os import getcwd, environ
 from pathlib import Path
-import re
 from subprocess import call
 from tempfile import NamedTemporaryFile
-from typing import List, Optional, Iterable
+from typing import Optional, Iterable
 from urllib.parse import urlparse
 
 from click import UsageError, ClickException
 import click
-from git import Repo, Remote, GitCommandError
+from git import Repo, Remote
 
-from alpa.config import PackitConfig
 from alpa.constants import (
     ALPA_FEAT_BRANCH,
     ALPA_FEAT_BRANCH_PREFIX,
-    MAIN_BRANCH,
     ORIGIN_NAME,
     UPSTREAM_NAME,
-    PackageRequest,
 )
 from alpa.gh import GithubAPI, GithubRepo
 from alpa.messages import (
     CLONED_REPO_IS_NOT_FORK,
-    NO_WRITE_ACCESS_ERR,
     NOT_IN_PREDEFINED_STATE,
     CLONED_REPO_IS_FORK,
     NO_PERMISSION_FOR_ALPA_REPO,
 )
 
 
-class LocalRepo:
+class LocalRepo(ABC):
     def __init__(self, repo_path: Path) -> None:
         self.repo_path = repo_path
         # TODO: this will differ in the future with repo_path
@@ -52,6 +48,32 @@ class LocalRepo:
         # lazy properties
         self._namespace: Optional[str] = None
         self._repo_name: Optional[str] = None
+        self._git_root: Optional[Path] = None
+
+    @abstractmethod
+    def get_packages(self, regex: str) -> list[str]:
+        pass
+
+    @abstractmethod
+    def switch_to_package(self, package: str) -> None:
+        pass
+
+    @abstractmethod
+    def _ensure_feature_branch(self) -> None:
+        pass
+
+    @abstractmethod
+    def get_history_of_package(self, package: str) -> str:
+        pass
+
+    @property
+    @abstractmethod
+    def package(self) -> str:
+        pass
+
+    @abstractmethod
+    def create_packit_config(self, override: bool) -> bool:
+        pass
 
     @property
     def remote_associated_with_current_branch(self) -> str:
@@ -60,10 +82,6 @@ class LocalRepo:
     @property
     def branch(self) -> str:
         return self.local_repo.active_branch.name
-
-    @property
-    def package(self) -> str:
-        return self.branch.removeprefix(ALPA_FEAT_BRANCH_PREFIX)
 
     @staticmethod
     def get_feat_branch_of_package(package: str) -> str:
@@ -83,7 +101,7 @@ class LocalRepo:
 
         return relevant_refs
 
-    def show_remote_branches(self, remote: str) -> List[str]:
+    def get_remote_branches(self, remote: str) -> list[str]:
         lines = [
             line.strip()
             for line in self.git_cmd.remote("--verbose", "show", remote).split("\n")
@@ -117,19 +135,6 @@ class LocalRepo:
 
         lines_with_remote_branches = lines[start + 1 : end]
         return [line.split()[0] for line in lines_with_remote_branches]
-
-    def get_packages(self, regex: str) -> List[str]:
-        # self.local_repo.remote(name=self.remote_name).refs don't work on every case
-        refs_without_main = filter(
-            lambda ref: ref != "main", self.show_remote_branches(self.remote_name)
-        )
-        relevant_refs = self._get_relevant_remote_refs(refs_without_main)
-
-        if regex == "":
-            return list(relevant_refs)
-
-        pattern = re.compile(regex)
-        return [ref for ref in relevant_refs if pattern.match(ref)]
 
     def _is_repo_in_predefined_state(self) -> bool:
         remotes_name_set = {remote.name for remote in self.local_repo.remotes}
@@ -213,29 +218,7 @@ class LocalRepo:
 
         return False
 
-    def switch_to_package(self, package: str) -> None:
-        if self.local_repo.is_dirty():
-            click.echo(
-                "Repo is dirty, please commit your changes before switching to"
-                f" another package.\n {self.get_status_output()}"
-            )
-            return None
-
-        feat_branch = self.get_feat_branch_of_package(package)
-        branch_to_switch = feat_branch if self.branch_exists(feat_branch) else package
-        try:
-            click.echo(
-                self.git_cmd.switch(branch_to_switch).replace("branch", "package")
-            )
-        except GitCommandError:
-            # switching to the package for the first time
-            click.echo(f"Switching to the package {package} for the first time")
-            click.echo(self.git_cmd.fetch(self.remote_name, branch_to_switch))
-            click.echo(
-                self.git_cmd.switch(branch_to_switch).replace("branch", "package")
-            )
-
-    def get_history_of_branch(self, branch: str, *params: List[str]) -> str:
+    def get_history_of_branch(self, branch: str, *params: list[str]) -> str:
         return self.git_cmd.log("--decorate", "--graph", *params, branch)
 
     @staticmethod
@@ -248,13 +231,6 @@ class LocalRepo:
                 return output.decode("utf-8")
 
             return output
-
-    def _ensure_feature_branch(self) -> None:
-        if self.branch != self.package:
-            return None
-
-        click.echo("Switching to feature branch")
-        self.git_cmd.switch("-c", self.feat_branch)
 
     def commit(self, message: str, pre_commit: bool) -> bool:
         if pre_commit:
@@ -271,7 +247,7 @@ class LocalRepo:
 
         return True
 
-    def add(self, files: List[str]) -> None:
+    def add(self, files: list[str]) -> None:
         self._ensure_feature_branch()
         # FIXME: alpa add . acts weird
         self.git_cmd.add(files)
@@ -290,16 +266,13 @@ class LocalRepo:
 
         return ""
 
-    def create_packit_config(self, override: bool) -> bool:
-        packit_conf = PackitConfig(self.package)
-        if packit_conf.packit_config_file_exists() and not override:
-            return False
+    @property
+    def git_root(self) -> Optional[Path]:
+        if self._git_root is not None:
+            return self._git_root
 
-        packit_conf.create_packit_config()
-        return True
-
-    def get_git_root(self) -> Optional[Path]:
-        return Path(self.local_repo.working_tree_dir)
+        self._git_root = Path(self.local_repo.working_tree_dir)
+        return self._git_root
 
 
 class AlpaRepo(LocalRepo):
@@ -309,31 +282,16 @@ class AlpaRepo(LocalRepo):
         self.gh_api = gh_api or GithubAPI(self.repo_name)
         self.gh_repo = self.gh_api.get_repo(self.namespace, self.repo_name)
 
+    @abstractmethod
     def create_package(self, package: str) -> None:
-        upstream = self.gh_repo.get_upstream()
-        if upstream and not upstream.has_write_access(self.gh_api.gh_user):
-            raise ClickException(NO_WRITE_ACCESS_ERR)
+        pass
 
-        self.git_cmd.switch(MAIN_BRANCH)
-        self.git_cmd.switch("-c", package)
-        self.git_cmd.push(self.remote_name, package)
-        click.echo(f"Package {package} created")
-
+    @abstractmethod
     def request_package(self, package_name: str) -> None:
-        ensured_upstream = self.gh_repo.get_root_repo()
-        upstream_namespace = ensured_upstream.namespace
-        issue_repo = self.gh_api.get_repo(upstream_namespace, self.gh_repo.repo_name)
-        issue = issue_repo.create_issue(
-            PackageRequest.TITLE.value.format(package_name=package_name),
-            PackageRequest.BODY.value.format(
-                user=self.gh_api.gh_user,
-                package_name=package_name,
-                repo_name=self.gh_repo.repo_name,
-            ),
-        )
-        issue.add_to_labels(PackageRequest.LABEL)
+        pass
 
-    def delete_package(self) -> None:
+    @abstractmethod
+    def delete_package(self, package: str) -> bool:
         pass
 
     @staticmethod

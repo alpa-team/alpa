@@ -7,7 +7,6 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Iterable, Optional, Any
 
-from alpa.constants import USE_SUBCLASS
 from alpa.exceptions import AlpaConfException
 
 
@@ -44,4 +43,4 @@ class Config(ABC):
     @classmethod
     @abstractmethod
     def get_config(cls) -> "Config":
-        raise NotImplementedError(USE_SUBCLASS)
+        pass

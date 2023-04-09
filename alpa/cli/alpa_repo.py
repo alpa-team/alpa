@@ -8,7 +8,7 @@ from pathlib import Path
 
 import click
 
-from alpa.repository import AlpaRepo
+from alpa.repository.branch import AlpaRepoBranch
 
 
 pkg_name = click.argument("name", type=str)
@@ -18,7 +18,7 @@ pkg_name = click.argument("name", type=str)
 @pkg_name
 def create(name: str) -> None:
     """Create new package"""
-    AlpaRepo(Path(getcwd())).create_package(name)
+    AlpaRepoBranch(Path(getcwd())).create_package(name)
 
 
 @click.command("delete")

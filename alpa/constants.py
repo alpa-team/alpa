@@ -36,8 +36,6 @@ METADATA_FILE_NAMES = [
 
 ALPA_CONFIG_FILE_NAMES = [".alpa.yaml", ".alpa.yml", "alpa.yaml", "alpa.yml"]
 
-USE_SUBCLASS = "Use subclass instead."
-
 
 class PackageRequest(str, Enum):
     TITLE = "[alpa] New request for package {package_name}"
