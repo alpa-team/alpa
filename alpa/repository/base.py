@@ -291,7 +291,7 @@ class AlpaRepo(LocalRepo):
         pass
 
     @abstractmethod
-    def delete_package(self, package: str) -> bool:
+    def request_package_delete(self, package: str) -> None:
         pass
 
     @staticmethod

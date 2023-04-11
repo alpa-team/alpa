@@ -5,7 +5,7 @@ repository.
 
 from pathlib import Path
 import re
-from typing import Optional
+from typing import Optional, Type
 
 from click import ClickException
 import click
@@ -16,6 +16,8 @@ from alpa.constants import (
     ALPA_FEAT_BRANCH_PREFIX,
     MAIN_BRANCH,
     PackageRequest,
+    DeleteRequest,
+    REQUEST_LABEL,
 )
 from alpa.gh import GithubAPI
 from alpa.messages import NO_WRITE_ACCESS_ERR
@@ -101,18 +103,23 @@ class AlpaRepoBranch(AlpaRepo, LocalRepoBranch):
         self.git_cmd.push(self.remote_name, package)
         click.echo(f"Package {package} created")
 
-    def request_package(self, package_name: str) -> None:
+    def _request_package_action(
+        self, action: Type[PackageRequest | DeleteRequest], pkg: str
+    ) -> None:
         ensured_upstream = self.gh_repo.get_root_repo()
         upstream_namespace = ensured_upstream.namespace
         issue_repo = self.gh_api.get_repo(upstream_namespace, self.gh_repo.repo_name)
         issue = issue_repo.create_issue(
-            PackageRequest.TITLE.value.format(package_name=package_name),
-            PackageRequest.BODY.value.format(
+            action.TITLE.value.format(package_name=pkg),
+            action.BODY.value.format(
                 user=self.gh_api.gh_user,
-                package_name=package_name,
+                package_name=pkg,
             ),
         )
-        issue.add_to_labels(PackageRequest.LABEL)
+        issue.add_to_labels(REQUEST_LABEL)
 
-    def delete_package(self, package: str) -> bool:
-        raise NotImplementedError("Please implement me!")
+    def request_package(self, package_name: str) -> None:
+        self._request_package_action(PackageRequest, package_name)
+
+    def request_package_delete(self, package: str) -> None:
+        self._request_package_action(DeleteRequest, package)

@@ -24,8 +24,8 @@ def create(name: str) -> None:
 @click.command("delete")
 @pkg_name
 def delete(name: str) -> None:
-    """Delete existing package"""
-    raise NotImplementedError("Not implemented yet (1.0 goal)")
+    """Request deleting existing package"""
+    AlpaRepoBranch(Path(getcwd())).request_package_delete(name)
 
 
 @click.command("request-package")

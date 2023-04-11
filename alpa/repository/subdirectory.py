@@ -44,7 +44,7 @@ class AlpaRepoSubdirectory(AlpaRepo, LocalRepoSubdirectory):
     def create_package(self, package: str) -> None:
         raise NotImplementedError("Please implement me.")
 
-    def request_package(self, package_name: str) -> None:
+    def request_package_delete(self, package_name: str) -> None:
         raise NotImplementedError("Please implement me.")
 
     def delete_package(self, package: str) -> bool:

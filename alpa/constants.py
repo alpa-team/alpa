@@ -47,5 +47,5 @@ class PackageRequest(str, Enum):
 
 class DeleteRequest(str, Enum):
     TITLE = "[alpa delete-package] New request for deleting package {package_name}"
-    BODY = "@{user} requested {package_name}"
+    BODY = "@{user} requested to delete {package_name}"
     LABEL = REQUEST_LABEL
