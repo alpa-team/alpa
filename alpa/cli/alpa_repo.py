@@ -32,4 +32,4 @@ def delete(name: str) -> None:
 @pkg_name
 def request_package(name: str) -> None:
     """Request new branch for new package in Alpa repo"""
-    raise NotImplementedError("Not implemented yet (1.0 goal)")
+    AlpaRepoBranch(Path(getcwd())).request_package(name)
