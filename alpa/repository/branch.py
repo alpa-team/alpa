@@ -110,7 +110,6 @@ class AlpaRepoBranch(AlpaRepo, LocalRepoBranch):
             PackageRequest.BODY.value.format(
                 user=self.gh_api.gh_user,
                 package_name=package_name,
-                repo_name=self.gh_repo.repo_name,
             ),
         )
         issue.add_to_labels(PackageRequest.LABEL)

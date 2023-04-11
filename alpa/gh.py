@@ -1,5 +1,5 @@
 """
-Integration with GitHub API.
+Wrapper aroung pygithub API since the documentation is awful..
 """
 
 
@@ -93,10 +93,16 @@ class GithubRepo:
         except UnknownObjectException:
             return False
 
+    def get_issues(self, state: str, labels: list[str]) -> list[Issue]:
+        return list(self._repo.get_issues(state=state, labels=labels))
+
 
 class GithubAPI:
-    def __init__(self, repo_name: str) -> None:
-        self._gh_api = Github(self._get_access_token(repo_name))
+    def __init__(self, repo_name: str, gh_token: Optional[str] = None) -> None:
+        if gh_token is not None:
+            self._gh_api = Github(gh_token)
+        else:
+            self._gh_api = Github(self._get_access_token(repo_name))
 
     @property
     def gh_user(self) -> str:
