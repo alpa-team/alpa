@@ -8,7 +8,7 @@ from pathlib import Path
 
 import click
 
-from alpa.repository import AlpaRepo
+from alpa.repository.branch import AlpaRepoBranch
 
 
 pkg_name = click.argument("name", type=str)
@@ -18,14 +18,14 @@ pkg_name = click.argument("name", type=str)
 @pkg_name
 def create(name: str) -> None:
     """Create new package"""
-    AlpaRepo(Path(getcwd())).create_package(name)
+    AlpaRepoBranch(Path(getcwd())).create_package(name)
 
 
 @click.command("delete")
 @pkg_name
 def delete(name: str) -> None:
-    """Delete existing package"""
-    raise NotImplementedError("Not implemented yet (1.0 goal)")
+    """Request deleting existing package"""
+    AlpaRepoBranch(Path(getcwd())).request_package_delete(name)
 
 
 @click.command("request-package")

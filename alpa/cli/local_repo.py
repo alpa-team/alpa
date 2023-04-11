@@ -5,14 +5,13 @@ These commands need to create LocalRepo -> no GH token required
 
 from os import getcwd
 from pathlib import Path
-from typing import List
 
 import click
 from click import ClickException, Choice
 from specfile import Specfile
 
 from alpa.config import MetadataConfig, PackitConfig
-from alpa.repository import LocalRepo, AlpaRepo
+from alpa.repository.branch import LocalRepoBranch, AlpaRepoBranch
 from alpa.upstream_integration import UpstreamIntegration
 
 pkg_name = click.argument("name", type=str)
@@ -33,7 +32,7 @@ def show_history(oneline: bool) -> None:
     if oneline:
         params.append("--oneline")
 
-    local_repo = LocalRepo(Path(getcwd()))
+    local_repo = LocalRepoBranch(Path(getcwd()))
     click.echo(local_repo.get_history_of_branch(local_repo.branch, params))
 
 
@@ -41,7 +40,7 @@ def show_history(oneline: bool) -> None:
 @pkg_name
 def switch(name: str) -> None:
     """Switch to specified package"""
-    LocalRepo(Path(getcwd())).switch_to_package(name)
+    LocalRepoBranch(Path(getcwd())).switch_to_package(name)
 
 
 @click.command("commit")
@@ -58,14 +57,14 @@ def commit(message: str, no_verify: bool) -> None:
     if len(message) > 80:
         raise ClickException("Message longer than 80 characters")
 
-    LocalRepo(Path(getcwd())).commit(message, not no_verify)
+    LocalRepoBranch(Path(getcwd())).commit(message, not no_verify)
 
 
 @click.command("add")
 @click.argument("files", type=str, nargs=-1, required=True)
-def add(files: List[str]) -> None:
+def add(files: list[str]) -> None:
     """Add files to git history. Basically calls `git add <input>`"""
-    LocalRepo(Path(getcwd())).add(files)
+    LocalRepoBranch(Path(getcwd())).add(files)
 
 
 @click.command("push")
@@ -80,7 +79,7 @@ def add(files: List[str]) -> None:
 def push(pull_request: bool) -> None:
     """Pushes your commited changes to the Alpa repo so you can make PR"""
     repo_path = Path(getcwd())
-    local_repo = LocalRepo(repo_path)
+    local_repo = LocalRepoBranch(repo_path)
 
     packit_conf = PackitConfig(local_repo.package)
     if not packit_conf.packit_config_file_exists():
@@ -96,7 +95,7 @@ def push(pull_request: bool) -> None:
         local_repo.git_cmd.branch("-d", local_repo.feat_branch)
         return
 
-    alpa = AlpaRepo(repo_path)
+    alpa = AlpaRepoBranch(repo_path)
     pr = alpa.gh_repo.create_pr(
         title=f"[alpa-cli] Create update of package {local_repo.package}",
         body=(
@@ -116,7 +115,7 @@ def push(pull_request: bool) -> None:
 @click.command("pull")
 def pull() -> None:
     """Pull last recent changes of package you are on from Alpa repo"""
-    local_repo = LocalRepo(Path(getcwd()))
+    local_repo = LocalRepoBranch(Path(getcwd()))
     local_repo.pull(local_repo.branch)
 
 
@@ -124,7 +123,7 @@ def pull() -> None:
 @click.option("-p", "--pattern", type=str, default="", help="Optional pattern to match")
 def list_(pattern: str) -> None:
     """List all packages or packages matching regex"""
-    for pkg in LocalRepo(Path(getcwd())).get_packages(pattern):
+    for pkg in LocalRepoBranch(Path(getcwd())).get_packages(pattern):
         click.echo(pkg)
 
 
@@ -159,7 +158,7 @@ def genspec(lang: str, test: bool) -> None:
 )
 def create_packit_config(override: bool) -> None:
     """Creates packit config based on metadata.yaml file in package"""
-    if not LocalRepo(Path(getcwd())).create_packit_config(override):
+    if not LocalRepoBranch(Path(getcwd())).create_packit_config(override):
         raise ClickException(
             "Packit file already exists. To override it use --override flag."
         )

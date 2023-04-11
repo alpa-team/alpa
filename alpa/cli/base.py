@@ -14,7 +14,7 @@ from alpa.cli.local_repo import (
     mockbuild,
     create_packit_config,
 )
-from alpa.repository import AlpaRepo
+from alpa.repository.branch import AlpaRepoBranch
 
 # TODO: get rid of the repetitive _Repo(Path(getcwd()))
 
@@ -32,7 +32,7 @@ def entry_point() -> None:
 @click.option("--fork", is_flag=True, default=False)
 def clone(url: str, fork: bool) -> None:
     """Clone and prepare Alpa repository"""
-    AlpaRepo.clone(url, fork)
+    AlpaRepoBranch.clone(url, fork)
 
 
 entry_point.add_command(create)

@@ -13,10 +13,10 @@ from alpa.config import MetadataConfig
 from click import ClickException
 from specfile import Specfile
 
-from alpa.repository import LocalRepo
+from alpa.repository.branch import LocalRepoBranch
 
 
-class UpstreamIntegration(LocalRepo):
+class UpstreamIntegration(LocalRepoBranch):
     def __init__(self, repo_path: Path) -> None:
         super().__init__(repo_path)
         self.metadata = MetadataConfig.get_config(repo_path)
