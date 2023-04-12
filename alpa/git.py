@@ -44,9 +44,15 @@ class GitCMD:
             stderr=asyncio.subprocess.PIPE,
             cwd=context,
         )
+        stdout = process.stdout.decode()
+        stderr = process.stderr.decode()
+        logger.debug(
+            f"git cmd results: stdout: {stdout}; stderr: {stderr}; "
+            f"retval: {process.returncode}"
+        )
         return GitCmdResult(
-            stdout=process.stdout.decode().strip(),
-            stderr=process.stderr.decode().strip(),
+            stdout=stdout.strip(),
+            stderr=stderr.strip(),
             retval=process.returncode,
         )
 
@@ -69,6 +75,10 @@ class GitCMD:
             cwd=context,
         )
         stdout, stderr = await async_subprocess.communicate()
+        logger.debug(
+            f"async git cmd results: stdout: {stdout.decode()}; "
+            f"stderr: {stderr.decode()}; retval: {async_subprocess.returncode}"
+        )
         return GitCmdResult(
             stdout=stdout.decode().strip(),
             stderr=stderr.decode().strip(),
