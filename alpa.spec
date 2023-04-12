@@ -1,5 +1,5 @@
 Name:           alpa
-Version:        0.7.2
+Version:        0.7.3
 Release:        1%{?dist}
 Summary:        Integration tool with Alpa repository
 
