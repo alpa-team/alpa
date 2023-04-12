@@ -271,7 +271,7 @@ class LocalRepo(ABC):
             split = without_git_suffix.split("/")
             return f"{split[-2]}/{split[-1]}"
 
-        return url.split(":")[-1]
+        return without_git_suffix.split(":")[-1]
 
     def full_reponame(self) -> str:
         logger.debug(f"Trying to find {self.remote_name} in {self.remotes}")
@@ -291,6 +291,10 @@ class LocalRepo(ABC):
     @property
     def git_root(self) -> Path:
         return Path(self.git.git_root)
+
+    def is_branch_merged(self, branch: str) -> bool:
+        ret = self.git_cmd(["fetch", self.remote_name, branch])
+        return ret.retval != 0 and "couldn't find remote ref" in ret.stderr
 
 
 class AlpaRepo(LocalRepo):
