@@ -292,6 +292,10 @@ class LocalRepo(ABC):
     def git_root(self) -> Path:
         return Path(self.git.git_root)
 
+    def is_branch_merged(self, branch: str) -> bool:
+        ret = self.git_cmd(["fetch", self.remote_name, branch])
+        return ret.retval != 0 and "couldn't find remote ref" in ret.stderr
+
 
 class AlpaRepo(LocalRepo):
     def __init__(self, repo_path: Path, gh_api: Optional[GithubAPI] = None) -> None:

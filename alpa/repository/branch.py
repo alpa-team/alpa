@@ -55,7 +55,13 @@ class LocalRepoBranch(LocalRepo):
             return None
 
         feat_branch = self.get_feat_branch_of_package(package)
-        branch_to_switch = feat_branch if self.branch_exists(feat_branch) else package
+        if self.branch_exists(feat_branch) and not self.is_branch_merged(feat_branch):
+            branch_to_switch = feat_branch
+        else:
+            branch_to_switch = package
+            if self.branch_exists(feat_branch):
+                self.git_cmd(["branch", "-D", feat_branch])
+
         result = self.git_cmd(["switch", branch_to_switch])
         if result.retval == 0:
             click.echo(result.stdout.replace("branch", "package"))
