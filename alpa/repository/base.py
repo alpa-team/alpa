@@ -261,6 +261,18 @@ class LocalRepo(ABC):
         # you always want to push to origin, even from a fork
         click.echo(self.git_cmd(["push", ORIGIN_NAME, branch]).stdout)
 
+    @staticmethod
+    def _parse_reponame_from_url(url: str) -> str:
+        without_git_suffix = url.removesuffix(".git")
+        if without_git_suffix.startswith("https://") or without_git_suffix.startswith(
+            "http://"
+        ):
+            logger.info(f"Git remote url is in https form {without_git_suffix}")
+            split = without_git_suffix.split("/")
+            return f"{split[-2]}/{split[-1]}"
+
+        return url.split(":")[-1]
+
     def full_reponame(self) -> str:
         logger.debug(f"Trying to find {self.remote_name} in {self.remotes}")
         for remote in self.remotes:
@@ -271,7 +283,7 @@ class LocalRepo(ABC):
                 logger.debug(
                     f"Remote {remote} found. Parsing its remote url {remote_url}"
                 )
-                return remote_url.split(":")[-1].removesuffix(".git")
+                return self._parse_reponame_from_url(remote_url)
 
         logger.debug("There are no remotes in this repo")
         return ""
