@@ -271,7 +271,7 @@ class LocalRepo(ABC):
             split = without_git_suffix.split("/")
             return f"{split[-2]}/{split[-1]}"
 
-        return url.split(":")[-1]
+        return without_git_suffix.split(":")[-1]
 
     def full_reponame(self) -> str:
         logger.debug(f"Trying to find {self.remote_name} in {self.remotes}")
