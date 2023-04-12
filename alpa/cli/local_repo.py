@@ -61,10 +61,10 @@ def commit(message: str, no_verify: bool) -> None:
 
 
 @click.command("add")
-@click.argument("files", type=str, nargs=-1, required=True)
-def add(files: list[str]) -> None:
+@click.argument("to_add", type=str, required=True)
+def add(to_add: str) -> None:
     """Add files to git history. Basically calls `git add <input>`"""
-    LocalRepoBranch(Path(getcwd())).add(files)
+    LocalRepoBranch(Path(getcwd())).add(to_add)
 
 
 @click.command("push")
@@ -84,15 +84,18 @@ def push(pull_request: bool) -> None:
     packit_conf = PackitConfig(local_repo.package)
     if not packit_conf.packit_config_file_exists():
         packit_conf.create_packit_config()
-        local_repo.git_cmd.add(".packit.yaml")
-        local_repo.git_cmd.commit(
-            '-m "alpa: automatically add .packit.yaml config to the package"'
+        local_repo.git_cmd(["add", ".packit.yaml"])
+        local_repo.git_cmd(
+            [
+                "commit",
+                '-m "alpa: automatically add .packit.yaml config to the package"',
+            ]
         )
 
     local_repo.push(local_repo.branch)
 
     if not pull_request:
-        local_repo.git_cmd.branch("-d", local_repo.feat_branch)
+        local_repo.git_cmd(["branch", "-d", local_repo.feat_branch])
         return
 
     alpa = AlpaRepoBranch(repo_path)
@@ -108,8 +111,8 @@ def push(pull_request: bool) -> None:
     click.echo(f"PR#{pr.number} created. URL: {pr.html_url}")
 
     # go from feat branch to package branch
-    local_repo.git_cmd.switch(local_repo.package)
-    local_repo.git_cmd.branch("-D", local_repo.feat_branch)
+    local_repo.git_cmd(["switch", local_repo.package])
+    local_repo.git_cmd(["branch", "-D", local_repo.feat_branch])
 
 
 @click.command("pull")

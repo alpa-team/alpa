@@ -9,7 +9,6 @@ from typing import Optional, Type
 
 from click import ClickException
 import click
-from git import GitCommandError
 
 from alpa.config import PackitConfig
 from alpa.constants import (
@@ -36,7 +35,6 @@ class LocalRepoBranch(LocalRepo):
         raise NotImplementedError("Please implement me!")
 
     def get_packages(self, regex: str) -> list[str]:
-        # self.local_repo.remote(name=self.remote_name).refs don't work on every case
         refs_without_main = filter(
             lambda ref: ref != "main", self.get_remote_branches(self.remote_name)
         )
@@ -49,7 +47,7 @@ class LocalRepoBranch(LocalRepo):
         return [ref for ref in relevant_refs if pattern.match(ref)]
 
     def switch_to_package(self, package: str) -> None:
-        if self.local_repo.is_dirty():
+        if self.is_dirty():
             click.echo(
                 "Repo is dirty, please commit your changes before switching to"
                 f" another package.\n {self.get_status_output()}"
@@ -58,16 +56,18 @@ class LocalRepoBranch(LocalRepo):
 
         feat_branch = self.get_feat_branch_of_package(package)
         branch_to_switch = feat_branch if self.branch_exists(feat_branch) else package
-        try:
-            click.echo(
-                self.git_cmd.switch(branch_to_switch).replace("branch", "package")
-            )
-        except GitCommandError:
-            # switching to the package for the first time
+        result = self.git_cmd(["switch", branch_to_switch])
+        if result.retval == 0:
+            click.echo(result.stdout.replace("branch", "package"))
+        else:
             click.echo(f"Switching to the package {package} for the first time")
-            click.echo(self.git_cmd.fetch(self.remote_name, branch_to_switch))
             click.echo(
-                self.git_cmd.switch(branch_to_switch).replace("branch", "package")
+                self.git_cmd(["fetch", self.remote_name, branch_to_switch]).stdout
+            )
+            click.echo(
+                self.git_cmd(["switch", branch_to_switch]).stdout.replace(
+                    "branch", "package"
+                )
             )
 
     def _ensure_feature_branch(self) -> None:
@@ -75,7 +75,7 @@ class LocalRepoBranch(LocalRepo):
             return None
 
         click.echo("Switching to feature branch")
-        self.git_cmd.switch("-c", self.feat_branch)
+        self.git_cmd(["switch", "-c", self.feat_branch])
 
     def create_packit_config(self, override: bool) -> bool:
         packit_conf = PackitConfig(self.package)
@@ -98,9 +98,9 @@ class AlpaRepoBranch(AlpaRepo, LocalRepoBranch):
         if upstream and not upstream.has_write_access(self.gh_api.gh_user):
             raise ClickException(NO_WRITE_ACCESS_ERR)
 
-        self.git_cmd.switch(MAIN_BRANCH)
-        self.git_cmd.switch("-c", package)
-        self.git_cmd.push(self.remote_name, package)
+        self.git_cmd(["switch", MAIN_BRANCH])
+        self.git_cmd(["switch", "-c", package])
+        self.git_cmd(["push", self.remote_name, package])
         click.echo(f"Package {package} created")
 
     def _request_package_action(

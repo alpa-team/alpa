@@ -4,16 +4,13 @@ repository.
 """
 import subprocess
 from abc import ABC, abstractmethod
-from os import getcwd, environ
+from os import getcwd
 from pathlib import Path
-from subprocess import call
-from tempfile import NamedTemporaryFile
 from typing import Optional, Iterable
 from urllib.parse import urlparse
 
 from click import UsageError, ClickException
 import click
-from git import Repo, Remote
 
 from alpa.constants import (
     ALPA_FEAT_BRANCH,
@@ -22,6 +19,7 @@ from alpa.constants import (
     UPSTREAM_NAME,
 )
 from alpa.gh import GithubAPI, GithubRepo
+from alpa.git import GitCMD
 from alpa.messages import (
     CLONED_REPO_IS_NOT_FORK,
     NOT_IN_PREDEFINED_STATE,
@@ -33,10 +31,8 @@ from alpa.messages import (
 class LocalRepo(ABC):
     def __init__(self, repo_path: Path) -> None:
         self.repo_path = repo_path
-        # TODO: this will differ in the future with repo_path
-        self.repo_root_path = repo_path
-        self.local_repo = Repo(str(self.repo_path), search_parent_directories=True)
-        self.git_cmd = self.local_repo.git
+        self.git = GitCMD(str(self.repo_path))
+        self.git_cmd = self.git.git_cmd
 
         if not self._is_repo_in_predefined_state():
             raise ClickException(NOT_IN_PREDEFINED_STATE)
@@ -48,7 +44,6 @@ class LocalRepo(ABC):
         # lazy properties
         self._namespace: Optional[str] = None
         self._repo_name: Optional[str] = None
-        self._git_root: Optional[Path] = None
 
     @abstractmethod
     def get_packages(self, regex: str) -> list[str]:
@@ -76,12 +71,8 @@ class LocalRepo(ABC):
         pass
 
     @property
-    def remote_associated_with_current_branch(self) -> str:
-        return self.local_repo.active_branch.tracking_branch().remote_name
-
-    @property
     def branch(self) -> str:
-        return self.local_repo.active_branch.name
+        return self.git_cmd(["rev-parse", "--abbrev-ref", "HEAD"]).stdout
 
     @staticmethod
     def get_feat_branch_of_package(package: str) -> str:
@@ -104,7 +95,9 @@ class LocalRepo(ABC):
     def get_remote_branches(self, remote: str) -> list[str]:
         lines = [
             line.strip()
-            for line in self.git_cmd.remote("--verbose", "show", remote).split("\n")
+            for line in self.git_cmd(
+                ["remote", "--verbose", "show", remote]
+            ).stdout.split("\n")
         ]
         # TODO: do a better job
         remote_branch_line = ["Remote branch:", "Remote branches:"]
@@ -136,25 +129,34 @@ class LocalRepo(ABC):
         lines_with_remote_branches = lines[start + 1 : end]
         return [line.split()[0] for line in lines_with_remote_branches]
 
+    @property
+    def remotes(self) -> set[str]:
+        return set(self.git_cmd(["remote"]).stdout.split())
+
     def _is_repo_in_predefined_state(self) -> bool:
-        remotes_name_set = {remote.name for remote in self.local_repo.remotes}
-        return remotes_name_set == {ORIGIN_NAME, UPSTREAM_NAME} or remotes_name_set == {
+        return self.remotes == {ORIGIN_NAME, UPSTREAM_NAME} or self.remotes == {
             ORIGIN_NAME
         }
 
     def _should_be_fork(self) -> bool:
-        remotes_name_set = {remote.name for remote in self.local_repo.remotes}
         # if repo is prepared via alpa-cli, fork should have 2 remotes and non-fork 1
-        return len(remotes_name_set) > 1
+        return len(self.remotes) > 1
 
     @property
     def untracked_files(self) -> list[str]:
-        return self.local_repo.untracked_files
+        return self.git_cmd(["ls-files", "-o", "--exclude-standard"]).stdout.split()
 
     def _get_dirty_files(self, staged: bool) -> list[str]:
         result = []
-        status_output = self.git_cmd.status("--porcelain=1").split("\n")
-        for line in status_output:
+        status_output = self.git_cmd(["status", "--porcelain=1"]).stdout
+        if not status_output:
+            return []
+
+        for line in status_output.split("\n"):
+            if line == "":
+                # some empty line in the output
+                continue
+
             file = line.split()[-1]
             if line.startswith("MM"):
                 result.append(file)
@@ -169,6 +171,9 @@ class LocalRepo(ABC):
                 continue
 
         return result
+
+    def is_dirty(self) -> bool:
+        return self.git_cmd(["status", "--porcelain"]).stdout != ""
 
     @property
     def modified_files(self) -> list[str]:
@@ -212,25 +217,14 @@ class LocalRepo(ABC):
         return output
 
     def branch_exists(self, branch: str) -> bool:
-        for ref in self.local_repo.references:
-            if ref.name == branch:
+        for ref in self.git_cmd(["branch"]).stdout.split():
+            if ref.strip() == branch:
                 return True
 
         return False
 
-    def get_history_of_branch(self, branch: str, *params: list[str]) -> str:
-        return self.git_cmd.log("--decorate", "--graph", *params, branch)
-
-    @staticmethod
-    def _get_message_from_editor() -> str:
-        with NamedTemporaryFile(suffix=".alpa.tmp") as temp_file:
-            call([environ.get("EDITOR", "vim"), temp_file.name])
-            temp_file.seek(0)
-            output = temp_file.read()
-            if isinstance(output, (bytes, bytearray)):
-                return output.decode("utf-8")
-
-            return output
+    def get_history_of_branch(self, branch: str, params: list[str]) -> str:
+        return self.git_cmd(["log", "--decorate", "--graph"] + params + [branch]).stdout
 
     def commit(self, message: str, pre_commit: bool) -> bool:
         if pre_commit:
@@ -239,40 +233,37 @@ class LocalRepo(ABC):
                 return False
 
         self._ensure_feature_branch()
-        index = self.local_repo.index
         if message:
-            index.commit(message)
+            self.git_cmd(["commit", "-m", message])
         else:
-            index.commit(self._get_message_from_editor())
+            self.git_cmd(["commit"])
 
         return True
 
-    def add(self, files: list[str]) -> None:
+    def add(self, to_add: str) -> None:
         self._ensure_feature_branch()
-        # FIXME: alpa add . acts weird
-        self.git_cmd.add(files)
+        self.git_cmd(["add", to_add])
 
     def pull(self, branch: str) -> None:
-        click.echo(self.git_cmd.pull(self.remote_name, branch))
+        click.echo(self.git_cmd(["pull", self.remote_name, branch]).stdout)
 
     def push(self, branch: str) -> None:
         # you always want to push to origin, even from a fork
-        click.echo(self.git_cmd.push(ORIGIN_NAME, branch))
+        click.echo(self.git_cmd(["push", ORIGIN_NAME, branch]).stdout)
 
     def full_reponame(self) -> str:
-        for remote in self.local_repo.remotes:
-            if remote.name == self.remote_name:
-                return remote.url.split(":")[-1].removesuffix(".git")
+        for remote in self.remotes:
+            if remote == self.remote_name:
+                remote_url = self.git_cmd(
+                    ["config", "--get", f"remote.{remote}.url"]
+                ).stdout
+                return remote_url.split(":")[-1].removesuffix(".git")
 
         return ""
 
     @property
-    def git_root(self) -> Optional[Path]:
-        if self._git_root is not None:
-            return self._git_root
-
-        self._git_root = Path(self.local_repo.working_tree_dir)
-        return self._git_root
+    def git_root(self) -> Path:
+        return Path(self.git.git_root)
 
 
 class AlpaRepo(LocalRepo):
@@ -295,11 +286,16 @@ class AlpaRepo(LocalRepo):
         pass
 
     @staticmethod
-    def _prepare_cloned_repo(local_repo: Repo, gh_repo: GithubRepo) -> None:
+    def _prepare_cloned_repo(where_to_clone: str, gh_repo: GithubRepo) -> None:
         if not gh_repo.is_fork:
             return
 
-        Remote.create(local_repo, UPSTREAM_NAME, gh_repo.upstream_clone_url)
+        upstream_clone_url = gh_repo.upstream_clone_url
+        assert upstream_clone_url is not None
+        subprocess.run(
+            ["git", "remote", "add", UPSTREAM_NAME, upstream_clone_url],
+            cwd=where_to_clone,
+        )
 
     @staticmethod
     def _get_repo_name_from_url(repo_url: str) -> str:
@@ -333,7 +329,7 @@ class AlpaRepo(LocalRepo):
         if not check_result:
             raise UsageError(stderr)
 
-        cloned_repo = Repo.clone_from(
-            url, f"{getcwd()}/{cls._get_repo_name_from_url(url)}"
-        )
-        cls._prepare_cloned_repo(cloned_repo, gh_repo)
+        cwd = getcwd()
+        where_to_clone = f"{cwd}/{cls._get_repo_name_from_url(url)}"
+        subprocess.run(["git", "clone", url, where_to_clone], cwd=cwd)
+        cls._prepare_cloned_repo(where_to_clone, gh_repo)
