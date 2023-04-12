@@ -2,6 +2,7 @@
 Set of commands that helps with integration of Alpa
 repository.
 """
+import logging
 import subprocess
 from abc import ABC, abstractmethod
 from os import getcwd
@@ -28,6 +29,9 @@ from alpa.messages import (
 )
 
 
+logger = logging.getLogger(__name__)
+
+
 class LocalRepo(ABC):
     def __init__(self, repo_path: Path) -> None:
         self.repo_path = repo_path
@@ -40,6 +44,7 @@ class LocalRepo(ABC):
         # do it after predefined state is checked since this depends on it
         # (see comment in the _should_be_fork)
         self.remote_name = UPSTREAM_NAME if self._should_be_fork() else ORIGIN_NAME
+        logger.debug(f"Remote name for this repository is set to {self.remote_name}")
 
         # lazy properties
         self._namespace: Optional[str] = None
@@ -88,6 +93,7 @@ class LocalRepo(ABC):
         for ref in remote_refs:
             parsed_ref = ref.split("/")[-1]
             if not parsed_ref.startswith(ALPA_FEAT_BRANCH_PREFIX):
+                logger.debug(f"Relevant remote ref found: {parsed_ref}")
                 relevant_refs.append(parsed_ref)
 
         return relevant_refs
@@ -189,6 +195,7 @@ class LocalRepo(ABC):
             return self._namespace
 
         self._namespace = self.full_reponame().split("/")[0]
+        logger.debug(f"Setting namespace to {self._namespace}")
         return self._namespace
 
     @property
@@ -197,6 +204,7 @@ class LocalRepo(ABC):
             return self._repo_name
 
         self._repo_name = self.full_reponame().split("/")[1]
+        logger.debug(f"Setting repo name to {self._repo_name}")
         return self._repo_name
 
     @staticmethod
@@ -217,10 +225,12 @@ class LocalRepo(ABC):
         return output
 
     def branch_exists(self, branch: str) -> bool:
-        for ref in self.git_cmd(["branch"]).stdout.split():
+        branches = self.git_cmd(["branch"]).stdout.split()
+        for ref in branches:
             if ref.strip() == branch:
                 return True
 
+        logger.debug(f"Branch {branch} does not exist in {branches}")
         return False
 
     def get_history_of_branch(self, branch: str, params: list[str]) -> str:
@@ -252,13 +262,18 @@ class LocalRepo(ABC):
         click.echo(self.git_cmd(["push", ORIGIN_NAME, branch]).stdout)
 
     def full_reponame(self) -> str:
+        logger.debug(f"Trying to find {self.remote_name} in {self.remotes}")
         for remote in self.remotes:
             if remote == self.remote_name:
                 remote_url = self.git_cmd(
                     ["config", "--get", f"remote.{remote}.url"]
                 ).stdout
+                logger.debug(
+                    f"Remote {remote} found. Parsing its remote url {remote_url}"
+                )
                 return remote_url.split(":")[-1].removesuffix(".git")
 
+        logger.debug("There are no remotes in this repo")
         return ""
 
     @property

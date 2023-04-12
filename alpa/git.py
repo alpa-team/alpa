@@ -2,9 +2,13 @@
 Wrapper around git cmd using subprocess
 """
 import asyncio
+import logging
 import subprocess
 from dataclasses import dataclass
 from typing import Optional
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -31,6 +35,9 @@ class GitCMD:
         else:
             context = cwd
 
+        logger.debug(
+            f"Running git cmd: $ git {' '.join(arguments)}; in context {context}"
+        )
         process = subprocess.run(
             ["git"] + arguments,
             stdout=asyncio.subprocess.PIPE,
@@ -51,6 +58,9 @@ class GitCMD:
         else:
             context = cwd
 
+        logger.debug(
+            f"Running async git cmd: $ git {' '.join(arguments)}; in context {context}"
+        )
         async_subprocess = await asyncio.create_subprocess_exec(
             "git",
             *arguments,

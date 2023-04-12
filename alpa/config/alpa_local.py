@@ -1,8 +1,7 @@
 """
 Class for local cli config
 """
-
-
+import logging
 from os.path import isfile
 from pathlib import Path
 from typing import Optional
@@ -10,6 +9,9 @@ from typing import Optional
 from yaml import safe_load
 
 from alpa.constants import CONFIG_FILE_LOCATIONS
+
+
+logger = logging.getLogger(__name__)
 
 
 class AlpaLocalConfig:
@@ -21,8 +23,10 @@ class AlpaLocalConfig:
         for location in CONFIG_FILE_LOCATIONS:
             expanded_path = Path(location).expanduser()
             if isfile(str(expanded_path)):
+                logger.info(f"Config file found in {str(expanded_path)}")
                 return expanded_path
 
+        logger.info("No config file found for local alpa")
         return None
 
     @classmethod
