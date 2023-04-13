@@ -1,5 +1,10 @@
 # Configuration file for the Sphinx documentation builder.
 
+import os
+import sys
+
+sys.path.insert(0, os.path.abspath("../.."))
+
 # -- Project information
 
 project = "Alpa"
@@ -14,6 +19,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.intersphinx",
+    "sphinx_click",
 ]
 
 intersphinx_mapping = {
@@ -23,6 +29,10 @@ intersphinx_mapping = {
 intersphinx_disabled_domains = ["std"]
 
 templates_path = ["_templates"]
+
+source_suffix = ".rst"
+pygments_style = "sphinx"
+master_doc = "index"
 
 # -- Options for HTML output
 
