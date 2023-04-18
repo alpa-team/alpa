@@ -64,6 +64,7 @@ Getting started
 ---------------
 
 :doc:`Overview </topics/overview>`
+
 :doc:`Installation </topics/installation>`
 
 
@@ -76,7 +77,9 @@ Add more functionality to your Alpa repository
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 :doc:`Alpa repository configuration file </topics/repo-config-file>`
+
 :doc:`pre-commit hooks Alpa offers </topics/pre-commit-hooks>`
+
 :doc:`GitHub Actions Alpa offers </topics/alpa-actions>`
 
 
@@ -84,6 +87,9 @@ Create new package to Alpa repo
 -------------------------------
 
 :doc:`Tutorial how to create package </topics/package-creation-tutorial>`
+
 :doc:`Data needed to create package </topics/package-data>`
+
 :doc:`Release monitoring </topics/release-monitoring>`
+
 :doc:`Creating package for the first time </topics/first-package>`
