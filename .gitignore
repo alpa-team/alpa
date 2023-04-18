@@ -4,3 +4,4 @@ __pycache__/
 poetry.lock
 .vscode/
 .mypy_cache/
+docs/build/
