@@ -2,30 +2,19 @@
 
 Another cooL way to PAckage in copr
 
-### Status of alpa system
+### Build status
 
-| Package   | Copr build status                                                                                                                                                                                                     |
-| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| alpa      | [![Copr build status](https://copr.fedorainfracloud.org/coprs/alpa-team/alpa/package/alpa/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/alpa-team/alpa/package/alpa/)                         |
-| alpa-conf | [![Copr build status](https://copr.fedorainfracloud.org/coprs/alpa-team/alpa/package/python-alpa-conf/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/alpa-team/alpa/package/python-alpa-conf/) |
+alpa [![Copr build status](https://copr.fedorainfracloud.org/coprs/alpa-team/alpa/package/alpa/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/alpa-team/alpa/package/alpa/)
 
 ## Table of contents
 
 <!-- toc -->
 
-- [Requirements](#requirements)
 - [Installation](#installation)
 - [Usage](#usage)
 - [Contributing](#contributing)
 
 <!-- tocstop -->
-
-### Requirements
-
-- linux OS
-- shell
-- at least python3.8
-- git
 
 ### Installation
 
@@ -44,23 +33,7 @@ $ dnf install alpa
 
 ### Usage
 
-#### alpa.yaml config file
-
-Example:
-
-```yaml
----
-api_keys:
-  - repo:
-      name: test-repo
-      key: abcd
-  - repo:
-      name: another-repo
-      key: abcd2
-  - repo:
-      name: yet-another-repo
-      key: abcd3
-```
+Please visit our [documentation page](https://alpa.readthedocs.io/en/latest) to learn how to use alpa.
 
 ### Contributing
 
