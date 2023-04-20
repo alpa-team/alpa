@@ -6,11 +6,9 @@ from pathlib import Path
 
 import click
 from click import ClickException, Choice
-from specfile import Specfile
 
 from alpa.config import MetadataConfig
 from alpa.repository.branch import LocalRepoBranch, AlpaRepoBranch
-from alpa.upstream_integration import UpstreamIntegration
 
 pkg_name = click.argument("name", type=str)
 
@@ -171,6 +169,8 @@ def mockbuild(chroot: str) -> None:
     Builds for all chroots specified in metadata.yaml. Can be overriden by --chroot
      option which does build against one specified chroot.
     """
+    from alpa.upstream_integration import UpstreamIntegration
+
     meta = MetadataConfig.get_config()
     distros = [chroot] if chroot else list(meta.targets)
     chroots = _get_chroots_to_build(meta, distros)
@@ -179,7 +179,10 @@ def mockbuild(chroot: str) -> None:
 
 @click.command("get-pkg-archive")
 def get_pkg_archive() -> None:
-    """Gets archive from package config"""
+    """Gets archive from package config. WARNING: works only on rpm-based systems."""
+    from specfile import Specfile
+    from alpa.upstream_integration import UpstreamIntegration
+
     specfile_path = None
     cwd = Path(getcwd())
     for file in cwd.iterdir():
