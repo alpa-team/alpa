@@ -33,6 +33,14 @@ Activate Packit:
 * Go to https://github.com/marketplace/packit-as-a-service
 * Activate Packit for your Alpa repository
 
+If you want to use Alpa's :doc:`GitHub Actions</topics/alpa-actions>`:
+
+* Go to your repository ``Settings`` on GitHub
+* Click on ``Actions`` section and select ``General`` subsection
+* Find ``Workflow permissions`` and select ``Read and write permissions``
+
+.. image:: /images/workflow-permissions.png
+
 
 Create Copr repository
 ----------------------
