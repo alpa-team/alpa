@@ -8,7 +8,7 @@ import click
 from click import ClickException, Choice
 from specfile import Specfile
 
-from alpa.config import MetadataConfig, PackitConfig
+from alpa.config import MetadataConfig
 from alpa.repository.branch import LocalRepoBranch, AlpaRepoBranch
 from alpa.upstream_integration import UpstreamIntegration
 
@@ -78,18 +78,6 @@ def push(pull_request: bool) -> None:
     """Pushes your commited changes to the Alpa repo so you can make PR"""
     repo_path = Path(getcwd())
     local_repo = LocalRepoBranch(repo_path)
-
-    packit_conf = PackitConfig(local_repo.package)
-    if not packit_conf.packit_config_file_exists():
-        packit_conf.create_packit_config()
-        local_repo.git_cmd(["add", ".packit.yaml"])
-        local_repo.git_cmd(
-            [
-                "commit",
-                '-m "alpa: automatically add .packit.yaml config to the package"',
-            ]
-        )
-
     local_repo.push(local_repo.branch)
 
     if not pull_request:

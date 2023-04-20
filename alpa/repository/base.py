@@ -246,6 +246,7 @@ class LocalRepo(ABC):
                 [
                     "commit",
                     '-m "alpa: automatically add .packit.yaml config to the package"',
+                    ".packit.yaml",
                 ]
             )
 
@@ -264,7 +265,7 @@ class LocalRepo(ABC):
 
     def add(self, to_add: str) -> None:
         self._ensure_feature_branch()
-        self.git_cmd(["add", to_add])
+        self.git_cmd(["add"] + to_add.split())
 
     def pull(self, branch: str) -> None:
         click.echo(self.git_cmd(["pull", self.remote_name, branch]).stdout)
