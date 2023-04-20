@@ -1,1 +1,6 @@
 sphinx-click
+click
+pygithub
+pyyaml
+pydantic
+email-validator
