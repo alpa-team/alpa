@@ -40,3 +40,7 @@ RETURNING_CLONE_URL_MSG = (
     "User {user} does not have access to {repo} repository. "
     "Using https url for cloning instead of ssh url."
 )
+
+NO_PRE_COMMIT = (
+    "pre-commit is not installed! Please install " "it via `pip install pre-commit`"
+)

@@ -1,14 +1,19 @@
 """
 These commands need to create LocalRepo -> no GH token required
 """
+import os
+import subprocess
 from os import getcwd
 from pathlib import Path
+from shutil import which
 
 import click
 from click import ClickException, Choice
 
 from alpa.config import MetadataConfig
 from alpa.repository.branch import LocalRepoBranch, AlpaRepoBranch
+
+from alpa.messages import NO_PRE_COMMIT
 
 pkg_name = click.argument("name", type=str)
 
@@ -63,6 +68,20 @@ def add(to_add: str) -> None:
     LocalRepoBranch(Path(getcwd())).add(to_add)
 
 
+def _skip_pre_commit_checks_for_non_rpm_os() -> None:
+    process = subprocess.run(
+        ["rpm", "--help"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+    )
+    if process.returncode != 0:
+        # no special pre-commit hooks for non-RPM OS :/
+        disabled_checks = ["source0-uses-version-macro", "check-packit-file"]
+        click.echo(
+            "Warning! You don't have RPM based OS, these checks are "
+            f"disabled: {disabled_checks}"
+        )
+        os.environ["SKIP"] = ",".join(disabled_checks)
+
+
 @click.command("push")
 @click.option(
     "-p",
@@ -72,14 +91,25 @@ def add(to_add: str) -> None:
     default=False,
     help="This will create pull request on GitHub for you.",
 )
-def push(pull_request: bool) -> None:
+@click.option("-n", "--no-verify", is_flag=True, help="Do not run pre-commit")
+def push(pull_request: bool, no_verify: bool) -> None:
     """Pushes your commited changes to the Alpa repo so you can make PR"""
+    if not no_verify:
+        if which("pre-commit") is None:
+            click.echo(NO_PRE_COMMIT, err=True)
+            return
+
+        _skip_pre_commit_checks_for_non_rpm_os()
+        ret = subprocess.run(["pre-commit", "run", "--all-files"])
+        if ret.returncode != 0:
+            # pre-commit already gives info about fail
+            return
+
     repo_path = Path(getcwd())
     local_repo = LocalRepoBranch(repo_path)
     local_repo.push(local_repo.branch)
 
     if not pull_request:
-        local_repo.git_cmd(["branch", "-d", local_repo.feat_branch])
         return
 
     alpa = AlpaRepoBranch(repo_path)

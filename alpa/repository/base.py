@@ -245,15 +245,11 @@ class LocalRepo(ABC):
             self.git_cmd(
                 [
                     "commit",
-                    '-m "alpa: automatically add .packit.yaml config to the package"',
+                    "-m",
+                    '"alpa-cli: automatically add .packit.yaml config to the package"',
                     ".packit.yaml",
                 ]
             )
-
-        if pre_commit:
-            ret = subprocess.run(["pre-commit", "run", "--all-files"])
-            if ret.returncode != 0:
-                return False
 
         self._ensure_feature_branch()
         if message:
