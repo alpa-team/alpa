@@ -22,11 +22,16 @@ class PackitConfig:
         self.alpa_repo_config = AlpaRepoConfig.get_config()
 
     def get_packit_config(self) -> dict:
+        targets_with_arch = []
+        for arch in self.metadata.arch:
+            for target in self.metadata.targets:
+                targets_with_arch.append(f"{target}-{arch}")
+
         jobs = [
             {
                 "job": "copr_build",
                 "trigger": "pull_request",
-                "targets": list(self.metadata.targets),
+                "targets": targets_with_arch,
                 "owner": self.alpa_repo_config.copr_owner,
                 "project": f"{self.alpa_repo_config.copr_repo}-pull-requests",
             },
@@ -34,7 +39,7 @@ class PackitConfig:
                 "job": "copr_build",
                 "trigger": "commit",
                 "branch": self.package_name,
-                "targets": list(self.metadata.targets),
+                "targets": targets_with_arch,
                 "owner": self.alpa_repo_config.copr_owner,
                 "project": self.alpa_repo_config.copr_repo,
             },
@@ -45,7 +50,7 @@ class PackitConfig:
                 "job": "copr_build",
                 "trigger": "commit",
                 "branch": f"__alpa_autoupdate_{self.package_name}",
-                "targets": list(self.metadata.targets),
+                "targets": targets_with_arch,
                 "owner": self.alpa_repo_config.copr_owner,
                 "project": f"{self.alpa_repo_config.copr_repo}-pull-requests",
             }
