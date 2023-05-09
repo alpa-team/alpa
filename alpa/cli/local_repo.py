@@ -177,14 +177,6 @@ def create_packit_config(override: bool) -> None:
         )
 
 
-def _get_chroots_to_build(meta: MetadataConfig, distros: list[str]) -> list[str]:
-    chroots = []
-    for arch in meta.arch:
-        for distro in distros:
-            chroots.append(f"{distro}-{arch}")
-    return chroots
-
-
 @click.command("mockbuild")
 @click.option(
     "--chroot",
@@ -202,9 +194,7 @@ def mockbuild(chroot: str) -> None:
     from alpa.upstream_integration import UpstreamIntegration
 
     meta = MetadataConfig.get_config()
-    distros = [chroot] if chroot else list(meta.targets)
-    chroots = _get_chroots_to_build(meta, distros)
-    UpstreamIntegration(Path(getcwd())).mockbuild(chroots)
+    UpstreamIntegration(Path(getcwd())).mockbuild(meta.chroots)
 
 
 @click.command("get-pkg-archive")

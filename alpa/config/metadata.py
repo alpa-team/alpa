@@ -100,3 +100,11 @@ class MetadataConfig(Config):
             raise FileNotFoundError("No metadata file found in package")
 
         return metadata_data_class
+
+    @property
+    def chroots(self) -> list[str]:
+        chroots = []
+        for arch in self.arch:
+            for distro in self.targets:
+                chroots.append(f"{distro}-{arch}")
+        return chroots
