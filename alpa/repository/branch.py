@@ -34,7 +34,7 @@ class LocalRepoBranch(LocalRepo):
     def get_history_of_package(self, package: str) -> str:
         raise NotImplementedError("Please implement me!")
 
-    def get_packages(self, regex: str) -> list[str]:
+    def get_packages(self, regex: str = "") -> list[str]:
         refs_without_main = filter(
             lambda ref: ref != "main", self.get_remote_branches(self.remote_name)
         )

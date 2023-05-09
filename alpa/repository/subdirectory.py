@@ -29,7 +29,7 @@ class LocalRepoSubdirectory(LocalRepo):
     def get_history_of_package(self, package: str) -> str:
         raise NotImplementedError("Please implement me.")
 
-    def get_packages(self, regex: str) -> list[str]:
+    def get_packages(self, regex: str = "") -> list[str]:
         raise NotImplementedError("Please implement me.")
 
     def switch_to_package(self, package: str) -> None:

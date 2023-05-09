@@ -52,7 +52,7 @@ class LocalRepo(ABC):
         self._repo_name: Optional[str] = None
 
     @abstractmethod
-    def get_packages(self, regex: str) -> list[str]:
+    def get_packages(self, regex: str = "") -> list[str]:
         pass
 
     @abstractmethod
