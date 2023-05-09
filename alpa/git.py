@@ -40,8 +40,8 @@ class GitCMD:
         )
         process = subprocess.run(
             ["git"] + arguments,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             cwd=context,
         )
         stdout = process.stdout.decode()
