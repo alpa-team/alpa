@@ -266,9 +266,13 @@ class LocalRepo(ABC):
     def pull(self, branch: str) -> None:
         click.echo(self.git_cmd(["pull", self.remote_name, branch]).stdout)
 
-    def push(self, branch: str) -> None:
+    def push(self, branch: str, force: bool = False) -> None:
         # you always want to push to origin, even from a fork
-        click.echo(self.git_cmd(["push", ORIGIN_NAME, branch]).stdout)
+        cmd = ["push", ORIGIN_NAME, branch]
+        if force:
+            cmd.append("--force")
+
+        click.echo(self.git_cmd(cmd).stdout)
 
     @staticmethod
     def _parse_reponame_from_url(url: str) -> str:

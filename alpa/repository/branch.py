@@ -65,16 +65,15 @@ class LocalRepoBranch(LocalRepo):
         result = self.git_cmd(["switch", branch_to_switch])
         if result.retval == 0:
             click.echo(result.stdout.replace("branch", "package"))
-        else:
-            click.echo(f"Switching to the package {package} for the first time")
-            click.echo(
-                self.git_cmd(["fetch", self.remote_name, branch_to_switch]).stdout
+            return
+
+        click.echo(f"Switching to the package {package} for the first time")
+        click.echo(self.git_cmd(["fetch", self.remote_name, branch_to_switch]).stdout)
+        click.echo(
+            self.git_cmd(["switch", branch_to_switch]).stdout.replace(
+                "branch", "package"
             )
-            click.echo(
-                self.git_cmd(["switch", branch_to_switch]).stdout.replace(
-                    "branch", "package"
-                )
-            )
+        )
 
     def _ensure_feature_branch(self) -> None:
         if self.branch != self.package:
@@ -90,6 +89,35 @@ class LocalRepoBranch(LocalRepo):
 
         packit_conf.create_packit_config()
         return True
+
+    def _rebase_needed(self) -> bool:
+        self.git_cmd(["fetch", self.remote_name])
+        last_local_main_commit = self.git_cmd(["rev-parse", "main"]).stdout
+        last_remote_main_commit = self.git_cmd(["rev-parse", "main"]).stdout
+        return (
+            last_local_main_commit != last_remote_main_commit
+            and self.git_cmd(
+                [
+                    "merge-base",
+                    "--is-ancestor",
+                    last_local_main_commit,
+                    last_remote_main_commit,
+                ]
+            ).retval
+            == 0
+        )
+
+    def push(self, branch: str, force: bool = False) -> None:
+        if self._rebase_needed():
+            rebase_from = f"{self.remote_name}/{self.branch}"
+            click.echo(
+                "Warning! Main branch has new updates! Rebasing your package "
+                "with main branch...\n"
+                f"git rebase {rebase_from}"
+            )
+            self.git_cmd(["rebase", rebase_from])
+
+        super().push(branch, force=True)
 
 
 class AlpaRepoBranch(AlpaRepo, LocalRepoBranch):
