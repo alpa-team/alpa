@@ -21,3 +21,11 @@ The ``yaml`` file has these attributres:
 
 [Optional] ``allow_foreign_contributing``
   ``boolean``:  Allow foreign contributors to contribute and create packages in your repository.
+
+These two adds chroots for building on global level for all packages:
+
+[Optional] ``targets``
+  ``list of strings``:  This field is a list of :ref:`copr_targets`
+
+[Optional] ``arch``
+  ``list of strings``:  Architectures you want to build for.

@@ -10,7 +10,7 @@ from alpa.config import AlpaRepoConfig
 from test.constants import ALPA_CONFIG_MANDATORY_KEYS, ALPA_CONFIG_ALL_KEYS
 
 
-class TestAlpa:
+class TestAlpaRepoConfig:
     @pytest.mark.parametrize(
         "d",
         [
@@ -18,7 +18,7 @@ class TestAlpa:
             pytest.param(safe_load(ALPA_CONFIG_ALL_KEYS)),
         ],
     )
-    def test_config_from_dict(self, d):
+    def test_config_from_dict_runs(self, d):
         AlpaRepoConfig._config_from_dict(d)
 
     @pytest.mark.parametrize(
@@ -79,14 +79,16 @@ class TestAlpa:
             assert ret is None
 
     @pytest.mark.parametrize(
-        "alpa_config",
+        "alpa_config, everything",
         [
-            pytest.param(ALPA_CONFIG_ALL_KEYS),
-            pytest.param(ALPA_CONFIG_MANDATORY_KEYS),
+            pytest.param(ALPA_CONFIG_ALL_KEYS, True),
+            pytest.param(ALPA_CONFIG_MANDATORY_KEYS, False),
         ],
     )
     @patch.object(AlpaRepoConfig, "_load_alpa_config")
-    def test_content_in_config_file(self, mock_load_alpa_config, alpa_config):
+    def test_content_in_config_file(
+        self, mock_load_alpa_config, alpa_config, everything
+    ):
         mock_load_alpa_config.return_value = AlpaRepoConfig._config_from_dict(
             safe_load(alpa_config)
         )
@@ -95,7 +97,11 @@ class TestAlpa:
         assert config.repo_type == "branch"
         assert config.copr_owner == "alpa-owner"
         assert config.copr_repo == "alpa-repo"
-        if "allow_foreign_contributing:" in alpa_config:
+        if everything:
             assert config.allow_foreign_contributing
+            assert config.targets == {"f32"}
+            assert config.arch == {"aarch64"}
         else:
             assert not config.allow_foreign_contributing
+            assert config.targets is None
+            assert config.arch is None

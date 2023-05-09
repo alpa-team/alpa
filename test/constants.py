@@ -44,6 +44,18 @@ targets:
 """
 
 
+METADATA_WITHOUT_TARGETS = """
+---
+maintainers:
+  - user:
+      nick: naruto
+      email: narutothebest@konoha.jp
+  - user:
+      nick: random_guy
+      email: 123@random.r
+"""
+
+
 ALPA_CONFIG_MANDATORY_KEYS = """
 ---
 repo_type: branch
@@ -58,4 +70,10 @@ repo_type: branch
 copr_owner: alpa-owner
 copr_repo: alpa-repo
 allow_foreign_contributing: true
+
+targets:
+  - f32
+
+arch:
+  - aarch64
 """
