@@ -48,9 +48,11 @@ class LocalRepoBranch(LocalRepo):
 
     def switch_to_package(self, package: str) -> None:
         if self.is_dirty():
-            click.echo(
+            click.secho(
                 "Repo is dirty, please commit your changes before switching to"
-                f" another package.\n {self.get_status_output()}"
+                f" another package.\n {self.get_status_output()}",
+                fg="red",
+                err=True,
             )
             return None
 
@@ -64,13 +66,17 @@ class LocalRepoBranch(LocalRepo):
 
         result = self.git_cmd(["switch", branch_to_switch])
         if result.retval == 0:
-            click.echo(result.stdout.replace("branch", "package"))
+            click.echo(result.stderr_and_stdout.replace("branch", "package"))
+            return
+
+        process = self.git_cmd(["fetch", self.remote_name, branch_to_switch])
+        if process.retval != 0:
+            click.secho(f"Package {package} doesn't exist!", fg="red", err=True)
             return
 
         click.echo(f"Switching to the package {package} for the first time")
-        click.echo(self.git_cmd(["fetch", self.remote_name, branch_to_switch]).stdout)
         click.echo(
-            self.git_cmd(["switch", branch_to_switch]).stdout.replace(
+            self.git_cmd(["switch", branch_to_switch]).stderr_and_stdout.replace(
                 "branch", "package"
             )
         )
