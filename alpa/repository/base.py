@@ -13,7 +13,7 @@ from urllib.parse import urlparse
 from click import UsageError, ClickException
 import click
 
-from alpa.config import PackitConfig
+from alpa.packit import Packit
 from alpa.constants import (
     ALPA_FEAT_BRANCH,
     ALPA_FEAT_BRANCH_PREFIX,
@@ -52,7 +52,7 @@ class LocalRepo(ABC):
         self._repo_name: Optional[str] = None
 
     @abstractmethod
-    def get_packages(self, regex: str) -> list[str]:
+    def get_packages(self, regex: str = "") -> list[str]:
         pass
 
     @abstractmethod
@@ -238,22 +238,18 @@ class LocalRepo(ABC):
         return self.git_cmd(["log", "--decorate", "--graph"] + params + [branch]).stdout
 
     def commit(self, message: str, pre_commit: bool) -> bool:
-        packit_conf = PackitConfig(self.package)
+        packit_conf = Packit(self.package)
         if not packit_conf.packit_config_file_exists():
             packit_conf.create_packit_config()
             self.git_cmd(["add", ".packit.yaml"])
             self.git_cmd(
                 [
                     "commit",
-                    '-m "alpa: automatically add .packit.yaml config to the package"',
+                    "-m",
+                    "alpa: automatically add .packit.yaml config to the package",
                     ".packit.yaml",
                 ]
             )
-
-        if pre_commit:
-            ret = subprocess.run(["pre-commit", "run", "--all-files"])
-            if ret.returncode != 0:
-                return False
 
         self._ensure_feature_branch()
         if message:
@@ -268,11 +264,15 @@ class LocalRepo(ABC):
         self.git_cmd(["add"] + to_add.split())
 
     def pull(self, branch: str) -> None:
-        click.echo(self.git_cmd(["pull", self.remote_name, branch]).stdout)
+        click.echo(self.git_cmd(["pull", self.remote_name, branch]).stderr_and_stdout)
 
-    def push(self, branch: str) -> None:
+    def push(self, branch: str, force: bool = False) -> None:
         # you always want to push to origin, even from a fork
-        click.echo(self.git_cmd(["push", ORIGIN_NAME, branch]).stdout)
+        cmd = ["push", ORIGIN_NAME, branch]
+        if force:
+            cmd.append("--force")
+
+        click.echo(self.git_cmd(cmd).stderr_and_stdout)
 
     @staticmethod
     def _parse_reponame_from_url(url: str) -> str:

@@ -10,7 +10,7 @@ from typing import Optional, Type
 from click import ClickException
 import click
 
-from alpa.config import PackitConfig
+from alpa.packit import Packit
 from alpa.constants import (
     ALPA_FEAT_BRANCH_PREFIX,
     MAIN_BRANCH,
@@ -34,7 +34,7 @@ class LocalRepoBranch(LocalRepo):
     def get_history_of_package(self, package: str) -> str:
         raise NotImplementedError("Please implement me!")
 
-    def get_packages(self, regex: str) -> list[str]:
+    def get_packages(self, regex: str = "") -> list[str]:
         refs_without_main = filter(
             lambda ref: ref != "main", self.get_remote_branches(self.remote_name)
         )
@@ -48,9 +48,11 @@ class LocalRepoBranch(LocalRepo):
 
     def switch_to_package(self, package: str) -> None:
         if self.is_dirty():
-            click.echo(
+            click.secho(
                 "Repo is dirty, please commit your changes before switching to"
-                f" another package.\n {self.get_status_output()}"
+                f" another package.\n {self.get_status_output()}",
+                fg="red",
+                err=True,
             )
             return None
 
@@ -64,17 +66,20 @@ class LocalRepoBranch(LocalRepo):
 
         result = self.git_cmd(["switch", branch_to_switch])
         if result.retval == 0:
-            click.echo(result.stdout.replace("branch", "package"))
-        else:
-            click.echo(f"Switching to the package {package} for the first time")
-            click.echo(
-                self.git_cmd(["fetch", self.remote_name, branch_to_switch]).stdout
+            click.echo(result.stderr_and_stdout.replace("branch", "package"))
+            return
+
+        process = self.git_cmd(["fetch", self.remote_name, branch_to_switch])
+        if process.retval != 0:
+            click.secho(f"Package {package} doesn't exist!", fg="red", err=True)
+            return
+
+        click.echo(f"Switching to the package {package} for the first time")
+        click.echo(
+            self.git_cmd(["switch", branch_to_switch]).stderr_and_stdout.replace(
+                "branch", "package"
             )
-            click.echo(
-                self.git_cmd(["switch", branch_to_switch]).stdout.replace(
-                    "branch", "package"
-                )
-            )
+        )
 
     def _ensure_feature_branch(self) -> None:
         if self.branch != self.package:
@@ -84,12 +89,44 @@ class LocalRepoBranch(LocalRepo):
         self.git_cmd(["switch", "-c", self.feat_branch])
 
     def create_packit_config(self, override: bool) -> bool:
-        packit_conf = PackitConfig(self.package)
+        packit_conf = Packit(self.package)
         if packit_conf.packit_config_file_exists() and not override:
             return False
 
-        packit_conf.create_packit_config()
+        packit_conf.create_packit_config(override)
         return True
+
+    def _rebase_needed(self) -> bool:
+        self.git_cmd(["fetch", self.remote_name])
+        last_package_commit = self.git_cmd(["rev-parse", self.branch]).stdout
+        last_remote_main_commit = self.git_cmd(
+            ["rev-parse", f"{self.remote_name}/{MAIN_BRANCH}"]
+        ).stdout
+        return (
+            last_package_commit != last_remote_main_commit
+            and self.git_cmd(
+                [
+                    "merge-base",
+                    "--is-ancestor",
+                    last_remote_main_commit,
+                    last_package_commit,
+                ]
+            ).retval
+            != 0
+        )
+
+    def push(self, branch: str, force: bool = False) -> None:
+        if self._rebase_needed():
+            rebase_from = f"{self.remote_name}/{MAIN_BRANCH}"
+            click.secho(
+                "Warning! Main branch has new updates! Rebasing your package "
+                "with main branch...\n"
+                f"git rebase {rebase_from}",
+                fg="yellow",
+            )
+            self.git_cmd(["rebase", rebase_from])
+
+        super().push(branch, force=True)
 
 
 class AlpaRepoBranch(AlpaRepo, LocalRepoBranch):

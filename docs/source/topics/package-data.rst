@@ -85,7 +85,8 @@ targets
 
 ``Mandatory``
 
-This field is a list of :ref:`copr_targets`.
+This field is a list of :ref:`copr_targets`. If field ``target`` is specified in ``.alpa.yaml`` file,
+then this field become optional.
 
 arch
 ^^^^

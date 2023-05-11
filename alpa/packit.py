@@ -14,7 +14,7 @@ from alpa.config import AlpaRepoConfig, MetadataConfig
 from alpa.constants import PACKIT_CONFIG_NAMES
 
 
-class PackitConfig:
+class Packit:
     def __init__(self, package_name: str) -> None:
         self.package_name = package_name
         self.working_dir = Path(getcwd())
@@ -22,11 +22,16 @@ class PackitConfig:
         self.alpa_repo_config = AlpaRepoConfig.get_config()
 
     def get_packit_config(self) -> dict:
+        targets_with_arch = []
+        for arch in self.metadata.arch:
+            for target in self.metadata.targets:
+                targets_with_arch.append(f"{target}-{arch}")
+
         jobs = [
             {
                 "job": "copr_build",
                 "trigger": "pull_request",
-                "targets": list(self.metadata.targets),
+                "targets": targets_with_arch,
                 "owner": self.alpa_repo_config.copr_owner,
                 "project": f"{self.alpa_repo_config.copr_repo}-pull-requests",
             },
@@ -34,7 +39,7 @@ class PackitConfig:
                 "job": "copr_build",
                 "trigger": "commit",
                 "branch": self.package_name,
-                "targets": list(self.metadata.targets),
+                "targets": targets_with_arch,
                 "owner": self.alpa_repo_config.copr_owner,
                 "project": self.alpa_repo_config.copr_repo,
             },
@@ -45,7 +50,7 @@ class PackitConfig:
                 "job": "copr_build",
                 "trigger": "commit",
                 "branch": f"__alpa_autoupdate_{self.package_name}",
-                "targets": list(self.metadata.targets),
+                "targets": targets_with_arch,
                 "owner": self.alpa_repo_config.copr_owner,
                 "project": f"{self.alpa_repo_config.copr_repo}-pull-requests",
             }
@@ -58,7 +63,7 @@ class PackitConfig:
                 "create-archive": [
                     "pip install pyalpa",
                     'bash -c "alpa get-pkg-archive"',
-                    f'bash -c "ls -1 ./{self.package_name}-*.tar.gz"',
+                    'bash -c "ls -1 ./*.tar.gz"',
                 ],
             },
             "jobs": jobs,
@@ -74,8 +79,8 @@ class PackitConfig:
 
         return False
 
-    def create_packit_config(self) -> None:
-        if self.packit_config_file_exists():
+    def create_packit_config(self, override: bool = False) -> None:
+        if not override and self.packit_config_file_exists():
             raise FileExistsError("Packit configuration file already exists")
 
         with open(".packit.yaml", "w") as packit_yaml:

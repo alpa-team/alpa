@@ -14,6 +14,8 @@ from yaml import safe_load
 from alpa.constants import METADATA_FILE_NAMES
 from alpa.config.base import Config
 
+from alpa.config.alpa_repo import AlpaRepoConfig
+
 
 @dataclass
 class User:
@@ -61,13 +63,22 @@ class MetadataConfig(Config):
             )
             users_list.append(User(**maintainer))
 
-        targets = cls._check_for_mandatory_key(d, "targets", "metadata.yaml")
+        repo_config = AlpaRepoConfig.get_config()
+        if repo_config.targets is None:
+            targets = set(cls._check_for_mandatory_key(d, "targets", "metadata.yaml"))
+        else:
+            targets = set(d.get("targets", set())) | repo_config.targets
+
+        if repo_config.arch is None:
+            arch = set(d.get("arch", ["x86_64"]))
+        else:
+            arch = set(d.get("arch", [])) | repo_config.arch
 
         return MetadataConfig(
             autoupdate=autoupdate_dataclass,
             maintainers=users_list,
-            targets=set(targets),
-            arch=set(d.get("arch", ["x86_64"])),
+            targets=targets,
+            arch=arch,
         )
 
     @classmethod
@@ -89,3 +100,11 @@ class MetadataConfig(Config):
             raise FileNotFoundError("No metadata file found in package")
 
         return metadata_data_class
+
+    @property
+    def chroots(self) -> list[str]:
+        chroots = []
+        for arch in self.arch:
+            for distro in self.targets:
+                chroots.append(f"{distro}-{arch}")
+        return chroots

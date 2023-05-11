@@ -10,9 +10,10 @@ from test.constants import (
     ALPA_CONFIG_ALL_KEYS,
     METADATA_CONFIG_MANDATORY_ONLY_KEYS,
     ALPA_CONFIG_MANDATORY_KEYS,
+    METADATA_WITHOUT_TARGETS,
 )
 
-from alpa.config import PackitConfig
+from alpa.packit import Packit
 
 
 class TestPackitConfig:
@@ -27,14 +28,16 @@ class TestPackitConfig:
                         "create-archive": [
                             "pip install pyalpa",
                             'bash -c "alpa get-pkg-archive"',
-                            'bash -c "ls -1 ./uwu-*.tar.gz"',
+                            'bash -c "ls -1 ./*.tar.gz"',
                         ],
                     },
                     "jobs": [
                         {
                             "job": "copr_build",
                             "trigger": "pull_request",
-                            "targets": sorted(list({"f36", "f37", "centos"})),
+                            "targets": sorted(
+                                list({"f36-x86_64", "f37-x86_64", "centos-x86_64"})
+                            ),
                             "owner": "alpa-owner",
                             "project": "alpa-repo-pull-requests",
                         },
@@ -42,7 +45,9 @@ class TestPackitConfig:
                             "job": "copr_build",
                             "trigger": "commit",
                             "branch": "uwu",
-                            "targets": sorted(list({"f36", "f37", "centos"})),
+                            "targets": sorted(
+                                list({"f36-x86_64", "f37-x86_64", "centos-x86_64"})
+                            ),
                             "owner": "alpa-owner",
                             "project": "alpa-repo",
                         },
@@ -59,14 +64,31 @@ class TestPackitConfig:
                         "create-archive": [
                             "pip install pyalpa",
                             'bash -c "alpa get-pkg-archive"',
-                            'bash -c "ls -1 ./uwu-*.tar.gz"',
+                            'bash -c "ls -1 ./*.tar.gz"',
                         ],
                     },
                     "jobs": [
                         {
                             "job": "copr_build",
                             "trigger": "pull_request",
-                            "targets": sorted(list({"f36", "f37", "centos"})),
+                            "targets": sorted(
+                                list(
+                                    {
+                                        "f36-x86_64",
+                                        "f37-x86_64",
+                                        "centos-x86_64",
+                                        "f36-s390x",
+                                        "f37-s390x",
+                                        "centos-s390x",
+                                        "f36-aarch64",
+                                        "f37-aarch64",
+                                        "centos-aarch64",
+                                        "f32-x86_64",
+                                        "f32-s390x",
+                                        "f32-aarch64",
+                                    }
+                                )
+                            ),
                             "owner": "alpa-owner",
                             "project": "alpa-repo-pull-requests",
                         },
@@ -74,7 +96,24 @@ class TestPackitConfig:
                             "job": "copr_build",
                             "trigger": "commit",
                             "branch": "uwu",
-                            "targets": sorted(list({"f36", "f37", "centos"})),
+                            "targets": sorted(
+                                list(
+                                    {
+                                        "f36-x86_64",
+                                        "f37-x86_64",
+                                        "centos-x86_64",
+                                        "f36-s390x",
+                                        "f37-s390x",
+                                        "centos-s390x",
+                                        "f36-aarch64",
+                                        "f37-aarch64",
+                                        "centos-aarch64",
+                                        "f32-x86_64",
+                                        "f32-s390x",
+                                        "f32-aarch64",
+                                    }
+                                )
+                            ),
                             "owner": "alpa-owner",
                             "project": "alpa-repo",
                         },
@@ -82,13 +121,62 @@ class TestPackitConfig:
                             "job": "copr_build",
                             "trigger": "commit",
                             "branch": "__alpa_autoupdate_uwu",
-                            "targets": sorted(list({"f36", "f37", "centos"})),
+                            "targets": sorted(
+                                list(
+                                    {
+                                        "f36-x86_64",
+                                        "f37-x86_64",
+                                        "centos-x86_64",
+                                        "f36-s390x",
+                                        "f37-s390x",
+                                        "centos-s390x",
+                                        "f36-aarch64",
+                                        "f37-aarch64",
+                                        "centos-aarch64",
+                                        "f32-x86_64",
+                                        "f32-s390x",
+                                        "f32-aarch64",
+                                    }
+                                )
+                            ),
                             "owner": "alpa-owner",
                             "project": "alpa-repo-pull-requests",
                         },
                     ],
                 },
                 METADATA_CONFIG_ALL_KEYS,
+                ALPA_CONFIG_ALL_KEYS,
+            ),
+            pytest.param(
+                {
+                    "specfile_path": "uwu.spec",
+                    "srpm_build_deps": ["pip"],
+                    "actions": {
+                        "create-archive": [
+                            "pip install pyalpa",
+                            'bash -c "alpa get-pkg-archive"',
+                            'bash -c "ls -1 ./*.tar.gz"',
+                        ],
+                    },
+                    "jobs": [
+                        {
+                            "job": "copr_build",
+                            "trigger": "pull_request",
+                            "targets": sorted(list({"f32-aarch64"})),
+                            "owner": "alpa-owner",
+                            "project": "alpa-repo-pull-requests",
+                        },
+                        {
+                            "job": "copr_build",
+                            "trigger": "commit",
+                            "branch": "uwu",
+                            "targets": sorted(list({"f32-aarch64"})),
+                            "owner": "alpa-owner",
+                            "project": "alpa-repo",
+                        },
+                    ],
+                },
+                METADATA_WITHOUT_TARGETS,
                 ALPA_CONFIG_ALL_KEYS,
             ),
         ],
@@ -103,18 +191,18 @@ class TestPackitConfig:
         metadata_conf,
         alpa_conf,
     ):
-        mock_meta_get_config.return_value = MetadataConfig._fill_metadata_from_dict(
-            safe_load(metadata_conf)
-        )
         mock_alpa_repo_get_config.return_value = AlpaRepoConfig._config_from_dict(
             safe_load(alpa_conf)
         )
+        mock_meta_get_config.return_value = MetadataConfig._fill_metadata_from_dict(
+            safe_load(metadata_conf)
+        )
 
-        packit_config = PackitConfig("uwu").get_packit_config()
+        packit_config = Packit("uwu").get_packit_config()
         assert packit_config
         assert packit_config.get("jobs")
         for job in packit_config["jobs"]:
-            assert job.get("targets")
+            assert job.get("targets") is not None
             job["targets"] = sorted(list(job["targets"]))
 
         assert packit_config == result
@@ -147,4 +235,4 @@ class TestPackitConfig:
         mock_load_metadata_config.return_value = safe_load(METADATA_CONFIG_ALL_KEYS)
         mock_get_config.return_value = MagicMock()
 
-        assert PackitConfig("uwu").packit_config_file_exists() == result
+        assert Packit("uwu").packit_config_file_exists() == result

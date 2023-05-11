@@ -1,14 +1,19 @@
 """
 These commands need to create LocalRepo -> no GH token required
 """
+import os
+import subprocess
 from os import getcwd
 from pathlib import Path
+from shutil import which
 
 import click
-from click import ClickException, Choice
+from click import ClickException
 
 from alpa.config import MetadataConfig
 from alpa.repository.branch import LocalRepoBranch, AlpaRepoBranch
+
+from alpa.messages import NO_PRE_COMMIT
 
 pkg_name = click.argument("name", type=str)
 
@@ -63,6 +68,21 @@ def add(to_add: str) -> None:
     LocalRepoBranch(Path(getcwd())).add(to_add)
 
 
+def _skip_pre_commit_checks_for_non_rpm_os() -> None:
+    process = subprocess.run(
+        ["rpm", "--help"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+    )
+    if process.returncode != 0:
+        # no special pre-commit hooks for non-RPM OS :/
+        disabled_checks = ["source0-uses-version-macro", "check-packit-file"]
+        click.secho(
+            "Warning! You don't have RPM based OS, these checks are "
+            f"disabled: {disabled_checks}",
+            fg="yellow",
+        )
+        os.environ["SKIP"] = ",".join(disabled_checks)
+
+
 @click.command("push")
 @click.option(
     "-p",
@@ -72,14 +92,25 @@ def add(to_add: str) -> None:
     default=False,
     help="This will create pull request on GitHub for you.",
 )
-def push(pull_request: bool) -> None:
+@click.option("-n", "--no-verify", is_flag=True, help="Do not run pre-commit")
+def push(pull_request: bool, no_verify: bool) -> None:
     """Pushes your commited changes to the Alpa repo so you can make PR"""
+    if not no_verify:
+        if which("pre-commit") is None:
+            click.secho(NO_PRE_COMMIT, fg="red", err=True)
+            return
+
+        _skip_pre_commit_checks_for_non_rpm_os()
+        ret = subprocess.run(["pre-commit", "run", "--all-files"])
+        if ret.returncode != 0:
+            # pre-commit already gives info about fail
+            return
+
     repo_path = Path(getcwd())
     local_repo = LocalRepoBranch(repo_path)
     local_repo.push(local_repo.branch)
 
     if not pull_request:
-        local_repo.git_cmd(["branch", "-d", local_repo.feat_branch])
         return
 
     alpa = AlpaRepoBranch(repo_path)
@@ -110,25 +141,26 @@ def list_(pattern: str) -> None:
         click.echo(pkg)
 
 
-@click.command("genspec")
-@click.option(
-    "--lang",
-    type=Choice(["python", "java"], case_sensitive=False),
-    required=True,
-    help="Choose the programming language for which the generator is designed",
-)
-@click.option(
-    "-t",
-    "--test",
-    default=False,
-    help=(
-        "Send package with generated spec file to "
-        "packit to test whether build will succeed."
-    ),
-)
-def genspec(lang: str, test: bool) -> None:
-    """This command uses some existing spec file generators for you"""
-    raise NotImplementedError("Not implemented yet (1.0 goal)")
+# TODO: please implement me
+# @click.command("genspec")
+# @click.option(
+#     "--lang",
+#     type=Choice(["python", "java"], case_sensitive=False),
+#     required=True,
+#     help="Choose the programming language for which the generator is designed",
+# )
+# @click.option(
+#     "-t",
+#     "--test",
+#     default=False,
+#     help=(
+#         "Send package with generated spec file to "
+#         "packit to test whether build will succeed."
+#     ),
+# )
+# def genspec(lang: str, test: bool) -> None:
+#     """This command uses some existing spec file generators for you"""
+#     raise NotImplementedError("Not implemented yet (1.0 goal)")
 
 
 @click.command("create-packit-config")
@@ -147,14 +179,6 @@ def create_packit_config(override: bool) -> None:
         )
 
 
-def _get_chroots_to_build(meta: MetadataConfig, distros: list[str]) -> list[str]:
-    chroots = []
-    for arch in meta.arch:
-        for distro in distros:
-            chroots.append(f"{distro}-{arch}")
-    return chroots
-
-
 @click.command("mockbuild")
 @click.option(
     "--chroot",
@@ -171,9 +195,11 @@ def mockbuild(chroot: str) -> None:
     """
     from alpa.upstream_integration import UpstreamIntegration
 
-    meta = MetadataConfig.get_config()
-    distros = [chroot] if chroot else list(meta.targets)
-    chroots = _get_chroots_to_build(meta, distros)
+    if chroot:
+        chroots = [chroot]
+    else:
+        chroots = MetadataConfig.get_config().chroots
+
     UpstreamIntegration(Path(getcwd())).mockbuild(chroots)
 
 

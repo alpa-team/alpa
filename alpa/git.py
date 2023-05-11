@@ -17,6 +17,21 @@ class GitCmdResult:
     stderr: str
     retval: int
 
+    @property
+    def stderr_and_stdout(self) -> str:
+        result = ""
+        if self.stdout:
+            result += self.stdout
+
+        if not self.stderr:
+            return result
+
+        if result:
+            result += "\n"
+
+        result += self.stderr
+        return result
+
 
 class GitCMD:
     def __init__(self, cwd: str) -> None:
@@ -40,8 +55,8 @@ class GitCMD:
         )
         process = subprocess.run(
             ["git"] + arguments,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             cwd=context,
         )
         stdout = process.stdout.decode()
