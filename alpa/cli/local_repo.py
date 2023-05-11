@@ -195,8 +195,12 @@ def mockbuild(chroot: str) -> None:
     """
     from alpa.upstream_integration import UpstreamIntegration
 
-    meta = MetadataConfig.get_config()
-    UpstreamIntegration(Path(getcwd())).mockbuild(meta.chroots)
+    if chroot:
+        chroots = [chroot]
+    else:
+        chroots = MetadataConfig.get_config().chroots
+
+    UpstreamIntegration(Path(getcwd())).mockbuild(chroots)
 
 
 @click.command("get-pkg-archive")
