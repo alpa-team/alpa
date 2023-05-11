@@ -63,7 +63,7 @@ class PackitConfig:
                 "create-archive": [
                     "pip install pyalpa",
                     'bash -c "alpa get-pkg-archive"',
-                    f'bash -c "ls -1 ./{self.package_name}-*.tar.gz"',
+                    'bash -c "ls -1 ./*.tar.gz"',
                 ],
             },
             "jobs": jobs,

@@ -28,7 +28,7 @@ class TestPackitConfig:
                         "create-archive": [
                             "pip install pyalpa",
                             'bash -c "alpa get-pkg-archive"',
-                            'bash -c "ls -1 ./uwu-*.tar.gz"',
+                            'bash -c "ls -1 ./*.tar.gz"',
                         ],
                     },
                     "jobs": [
@@ -64,7 +64,7 @@ class TestPackitConfig:
                         "create-archive": [
                             "pip install pyalpa",
                             'bash -c "alpa get-pkg-archive"',
-                            'bash -c "ls -1 ./uwu-*.tar.gz"',
+                            'bash -c "ls -1 ./*.tar.gz"',
                         ],
                     },
                     "jobs": [
@@ -155,7 +155,7 @@ class TestPackitConfig:
                         "create-archive": [
                             "pip install pyalpa",
                             'bash -c "alpa get-pkg-archive"',
-                            'bash -c "ls -1 ./uwu-*.tar.gz"',
+                            'bash -c "ls -1 ./*.tar.gz"',
                         ],
                     },
                     "jobs": [
