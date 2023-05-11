@@ -13,7 +13,7 @@ from test.constants import (
     METADATA_WITHOUT_TARGETS,
 )
 
-from alpa.config import PackitConfig
+from alpa.packit import Packit
 
 
 class TestPackitConfig:
@@ -198,7 +198,7 @@ class TestPackitConfig:
             safe_load(metadata_conf)
         )
 
-        packit_config = PackitConfig("uwu").get_packit_config()
+        packit_config = Packit("uwu").get_packit_config()
         assert packit_config
         assert packit_config.get("jobs")
         for job in packit_config["jobs"]:
@@ -235,4 +235,4 @@ class TestPackitConfig:
         mock_load_metadata_config.return_value = safe_load(METADATA_CONFIG_ALL_KEYS)
         mock_get_config.return_value = MagicMock()
 
-        assert PackitConfig("uwu").packit_config_file_exists() == result
+        assert Packit("uwu").packit_config_file_exists() == result

@@ -13,7 +13,7 @@ from urllib.parse import urlparse
 from click import UsageError, ClickException
 import click
 
-from alpa.config import PackitConfig
+from alpa.packit import Packit
 from alpa.constants import (
     ALPA_FEAT_BRANCH,
     ALPA_FEAT_BRANCH_PREFIX,
@@ -238,7 +238,7 @@ class LocalRepo(ABC):
         return self.git_cmd(["log", "--decorate", "--graph"] + params + [branch]).stdout
 
     def commit(self, message: str, pre_commit: bool) -> bool:
-        packit_conf = PackitConfig(self.package)
+        packit_conf = Packit(self.package)
         if not packit_conf.packit_config_file_exists():
             packit_conf.create_packit_config()
             self.git_cmd(["add", ".packit.yaml"])

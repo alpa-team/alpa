@@ -10,7 +10,7 @@ from typing import Optional, Type
 from click import ClickException
 import click
 
-from alpa.config import PackitConfig
+from alpa.packit import Packit
 from alpa.constants import (
     ALPA_FEAT_BRANCH_PREFIX,
     MAIN_BRANCH,
@@ -89,7 +89,7 @@ class LocalRepoBranch(LocalRepo):
         self.git_cmd(["switch", "-c", self.feat_branch])
 
     def create_packit_config(self, override: bool) -> bool:
-        packit_conf = PackitConfig(self.package)
+        packit_conf = Packit(self.package)
         if packit_conf.packit_config_file_exists() and not override:
             return False
 

@@ -14,7 +14,7 @@ from alpa.config import AlpaRepoConfig, MetadataConfig
 from alpa.constants import PACKIT_CONFIG_NAMES
 
 
-class PackitConfig:
+class Packit:
     def __init__(self, package_name: str) -> None:
         self.package_name = package_name
         self.working_dir = Path(getcwd())
