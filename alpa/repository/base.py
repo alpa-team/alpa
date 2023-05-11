@@ -246,7 +246,7 @@ class LocalRepo(ABC):
                 [
                     "commit",
                     "-m",
-                    '"alpa-cli: automatically add .packit.yaml config to the package"',
+                    "alpa: automatically add .packit.yaml config to the package",
                     ".packit.yaml",
                 ]
             )
@@ -264,7 +264,7 @@ class LocalRepo(ABC):
         self.git_cmd(["add"] + to_add.split())
 
     def pull(self, branch: str) -> None:
-        click.echo(self.git_cmd(["pull", self.remote_name, branch]).stdout)
+        click.echo(self.git_cmd(["pull", self.remote_name, branch]).stderr_and_stdout)
 
     def push(self, branch: str, force: bool = False) -> None:
         # you always want to push to origin, even from a fork
@@ -272,7 +272,7 @@ class LocalRepo(ABC):
         if force:
             cmd.append("--force")
 
-        click.echo(self.git_cmd(cmd).stdout)
+        click.echo(self.git_cmd(cmd).stderr_and_stdout)
 
     @staticmethod
     def _parse_reponame_from_url(url: str) -> str:

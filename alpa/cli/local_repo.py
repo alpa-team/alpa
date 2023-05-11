@@ -75,9 +75,10 @@ def _skip_pre_commit_checks_for_non_rpm_os() -> None:
     if process.returncode != 0:
         # no special pre-commit hooks for non-RPM OS :/
         disabled_checks = ["source0-uses-version-macro", "check-packit-file"]
-        click.echo(
+        click.secho(
             "Warning! You don't have RPM based OS, these checks are "
-            f"disabled: {disabled_checks}"
+            f"disabled: {disabled_checks}",
+            fg="yellow",
         )
         os.environ["SKIP"] = ",".join(disabled_checks)
 
@@ -96,7 +97,7 @@ def push(pull_request: bool, no_verify: bool) -> None:
     """Pushes your commited changes to the Alpa repo so you can make PR"""
     if not no_verify:
         if which("pre-commit") is None:
-            click.echo(NO_PRE_COMMIT, err=True)
+            click.secho(NO_PRE_COMMIT, fg="red", err=True)
             return
 
         _skip_pre_commit_checks_for_non_rpm_os()

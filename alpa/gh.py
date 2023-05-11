@@ -30,10 +30,11 @@ class GithubRepo:
         if self.has_write_access(self._api.get_user().login):
             return self._repo.ssh_url
 
-        click.echo(
+        click.secho(
             RETURNING_CLONE_URL_MSG.format(
                 user=self._api.get_user().login, repo=self._repo.full_name
-            )
+            ),
+            fg="bright_yellow",
         )
         return self._repo.clone_url
 
