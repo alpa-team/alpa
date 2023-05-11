@@ -80,9 +80,7 @@ class AlpaRepoConfig(Config):
         if process.returncode != 0:
             raise AlpaConfException(process.stderr)
 
-        alpa_config = cls._load_alpa_config(
-            Path("/home/jkyjovsk/Documents/git/github/alpa/test-branch-repo")
-        )
+        alpa_config = cls._load_alpa_config(Path(process.stdout.decode().strip()))
         if alpa_config is None:
             raise FileNotFoundError("No alpa config file in git root found")
 
