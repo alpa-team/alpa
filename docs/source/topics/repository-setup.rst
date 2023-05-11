@@ -6,6 +6,11 @@ functioning of the software repository as a whole, it is important to pay attent
 following settings, because some parts of different programs might behave strangely and it
 might even happen that the repository stops packaging the software.
 
+.. caution::
+  In some steps you may have to disallow some checking when setting up the repository
+  like force ``git add`` through gitignore or skip pre-commit hooks, because they checks
+  pushing to main branch.
+
 
 Use template repository
 -----------------------
