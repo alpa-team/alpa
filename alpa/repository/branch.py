@@ -92,28 +92,31 @@ class LocalRepoBranch(LocalRepo):
 
     def _rebase_needed(self) -> bool:
         self.git_cmd(["fetch", self.remote_name])
-        last_local_main_commit = self.git_cmd(["rev-parse", "main"]).stdout
-        last_remote_main_commit = self.git_cmd(["rev-parse", "main"]).stdout
+        last_package_commit = self.git_cmd(["rev-parse", self.branch]).stdout
+        last_remote_main_commit = self.git_cmd(
+            ["rev-parse", f"{self.remote_name}/{MAIN_BRANCH}"]
+        ).stdout
         return (
-            last_local_main_commit != last_remote_main_commit
+            last_package_commit != last_remote_main_commit
             and self.git_cmd(
                 [
                     "merge-base",
                     "--is-ancestor",
-                    last_local_main_commit,
                     last_remote_main_commit,
+                    last_package_commit,
                 ]
             ).retval
-            == 0
+            != 0
         )
 
     def push(self, branch: str, force: bool = False) -> None:
         if self._rebase_needed():
-            rebase_from = f"{self.remote_name}/{self.branch}"
-            click.echo(
+            rebase_from = f"{self.remote_name}/{MAIN_BRANCH}"
+            click.secho(
                 "Warning! Main branch has new updates! Rebasing your package "
                 "with main branch...\n"
-                f"git rebase {rebase_from}"
+                f"git rebase {rebase_from}",
+                fg="yellow",
             )
             self.git_cmd(["rebase", rebase_from])
 
