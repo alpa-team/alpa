@@ -79,8 +79,8 @@ class PackitConfig:
 
         return False
 
-    def create_packit_config(self) -> None:
-        if self.packit_config_file_exists():
+    def create_packit_config(self, override: bool = False) -> None:
+        if not override and self.packit_config_file_exists():
             raise FileExistsError("Packit configuration file already exists")
 
         with open(".packit.yaml", "w") as packit_yaml:

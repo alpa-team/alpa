@@ -93,7 +93,7 @@ class LocalRepoBranch(LocalRepo):
         if packit_conf.packit_config_file_exists() and not override:
             return False
 
-        packit_conf.create_packit_config()
+        packit_conf.create_packit_config(override)
         return True
 
     def _rebase_needed(self) -> bool:
