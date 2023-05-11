@@ -8,7 +8,7 @@ from pathlib import Path
 from shutil import which
 
 import click
-from click import ClickException, Choice
+from click import ClickException
 
 from alpa.config import MetadataConfig
 from alpa.repository.branch import LocalRepoBranch, AlpaRepoBranch
@@ -141,25 +141,26 @@ def list_(pattern: str) -> None:
         click.echo(pkg)
 
 
-@click.command("genspec")
-@click.option(
-    "--lang",
-    type=Choice(["python", "java"], case_sensitive=False),
-    required=True,
-    help="Choose the programming language for which the generator is designed",
-)
-@click.option(
-    "-t",
-    "--test",
-    default=False,
-    help=(
-        "Send package with generated spec file to "
-        "packit to test whether build will succeed."
-    ),
-)
-def genspec(lang: str, test: bool) -> None:
-    """This command uses some existing spec file generators for you"""
-    raise NotImplementedError("Not implemented yet (1.0 goal)")
+# TODO: please implement me
+# @click.command("genspec")
+# @click.option(
+#     "--lang",
+#     type=Choice(["python", "java"], case_sensitive=False),
+#     required=True,
+#     help="Choose the programming language for which the generator is designed",
+# )
+# @click.option(
+#     "-t",
+#     "--test",
+#     default=False,
+#     help=(
+#         "Send package with generated spec file to "
+#         "packit to test whether build will succeed."
+#     ),
+# )
+# def genspec(lang: str, test: bool) -> None:
+#     """This command uses some existing spec file generators for you"""
+#     raise NotImplementedError("Not implemented yet (1.0 goal)")
 
 
 @click.command("create-packit-config")
