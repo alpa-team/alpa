@@ -5,8 +5,8 @@ autoupdate:
   anytia_backend: pypi
 
   targets_notify_on_fail:
-    - f36
-    - centos
+    - fedora-36
+    - centos-stream
 
 maintainers:
   - user:
@@ -17,9 +17,9 @@ maintainers:
       email: 123@random.r
 
 targets:
-  - f37
-  - f36
-  - centos
+  - fedora-37
+  - fedora-36
+  - centos-stream
 
 arch:
   - x86_64
@@ -38,9 +38,9 @@ maintainers:
       email: 123@random.r
 
 targets:
-  - f37
-  - f36
-  - centos
+  - fedora-37
+  - fedora-36
+  - centos-stream
 """
 
 
@@ -72,7 +72,7 @@ copr_repo: alpa-repo
 allow_foreign_contributing: true
 
 targets:
-  - f32
+  - fedora-32
 
 arch:
   - aarch64

@@ -36,7 +36,13 @@ class TestPackitConfig:
                             "job": "copr_build",
                             "trigger": "pull_request",
                             "targets": sorted(
-                                list({"f36-x86_64", "f37-x86_64", "centos-x86_64"})
+                                list(
+                                    {
+                                        "fedora-36-x86_64",
+                                        "fedora-37-x86_64",
+                                        "centos-stream-x86_64",
+                                    }
+                                )
                             ),
                             "owner": "alpa-owner",
                             "project": "alpa-repo-pull-requests",
@@ -46,7 +52,13 @@ class TestPackitConfig:
                             "trigger": "commit",
                             "branch": "uwu",
                             "targets": sorted(
-                                list({"f36-x86_64", "f37-x86_64", "centos-x86_64"})
+                                list(
+                                    {
+                                        "fedora-36-x86_64",
+                                        "fedora-37-x86_64",
+                                        "centos-stream-x86_64",
+                                    }
+                                )
                             ),
                             "owner": "alpa-owner",
                             "project": "alpa-repo",
@@ -74,18 +86,18 @@ class TestPackitConfig:
                             "targets": sorted(
                                 list(
                                     {
-                                        "f36-x86_64",
-                                        "f37-x86_64",
-                                        "centos-x86_64",
-                                        "f36-s390x",
-                                        "f37-s390x",
-                                        "centos-s390x",
-                                        "f36-aarch64",
-                                        "f37-aarch64",
-                                        "centos-aarch64",
-                                        "f32-x86_64",
-                                        "f32-s390x",
-                                        "f32-aarch64",
+                                        "fedora-36-x86_64",
+                                        "fedora-37-x86_64",
+                                        "centos-stream-x86_64",
+                                        "fedora-36-s390x",
+                                        "fedora-37-s390x",
+                                        "centos-stream-s390x",
+                                        "fedora-36-aarch64",
+                                        "fedora-37-aarch64",
+                                        "centos-stream-aarch64",
+                                        "fedora-32-x86_64",
+                                        "fedora-32-s390x",
+                                        "fedora-32-aarch64",
                                     }
                                 )
                             ),
@@ -99,18 +111,18 @@ class TestPackitConfig:
                             "targets": sorted(
                                 list(
                                     {
-                                        "f36-x86_64",
-                                        "f37-x86_64",
-                                        "centos-x86_64",
-                                        "f36-s390x",
-                                        "f37-s390x",
-                                        "centos-s390x",
-                                        "f36-aarch64",
-                                        "f37-aarch64",
-                                        "centos-aarch64",
-                                        "f32-x86_64",
-                                        "f32-s390x",
-                                        "f32-aarch64",
+                                        "fedora-36-x86_64",
+                                        "fedora-37-x86_64",
+                                        "centos-stream-x86_64",
+                                        "fedora-36-s390x",
+                                        "fedora-37-s390x",
+                                        "centos-stream-s390x",
+                                        "fedora-36-aarch64",
+                                        "fedora-37-aarch64",
+                                        "centos-stream-aarch64",
+                                        "fedora-32-x86_64",
+                                        "fedora-32-s390x",
+                                        "fedora-32-aarch64",
                                     }
                                 )
                             ),
@@ -124,18 +136,18 @@ class TestPackitConfig:
                             "targets": sorted(
                                 list(
                                     {
-                                        "f36-x86_64",
-                                        "f37-x86_64",
-                                        "centos-x86_64",
-                                        "f36-s390x",
-                                        "f37-s390x",
-                                        "centos-s390x",
-                                        "f36-aarch64",
-                                        "f37-aarch64",
-                                        "centos-aarch64",
-                                        "f32-x86_64",
-                                        "f32-s390x",
-                                        "f32-aarch64",
+                                        "fedora-36-x86_64",
+                                        "fedora-37-x86_64",
+                                        "centos-stream-x86_64",
+                                        "fedora-36-s390x",
+                                        "fedora-37-s390x",
+                                        "centos-stream-s390x",
+                                        "fedora-36-aarch64",
+                                        "fedora-37-aarch64",
+                                        "centos-stream-aarch64",
+                                        "fedora-32-x86_64",
+                                        "fedora-32-s390x",
+                                        "fedora-32-aarch64",
                                     }
                                 )
                             ),
@@ -162,7 +174,7 @@ class TestPackitConfig:
                         {
                             "job": "copr_build",
                             "trigger": "pull_request",
-                            "targets": sorted(list({"f32-aarch64"})),
+                            "targets": sorted(list({"fedora-32-aarch64"})),
                             "owner": "alpa-owner",
                             "project": "alpa-repo-pull-requests",
                         },
@@ -170,7 +182,7 @@ class TestPackitConfig:
                             "job": "copr_build",
                             "trigger": "commit",
                             "branch": "uwu",
-                            "targets": sorted(list({"f32-aarch64"})),
+                            "targets": sorted(list({"fedora-32-aarch64"})),
                             "owner": "alpa-owner",
                             "project": "alpa-repo",
                         },

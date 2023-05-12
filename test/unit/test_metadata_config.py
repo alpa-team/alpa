@@ -24,7 +24,7 @@ class TestMetadata:
                 {
                     "upstream_pkg_name": "some_package",
                     "anytia_backend": "pypi",
-                    "targets_notify_on_fail": ["f36", "centos"],
+                    "targets_notify_on_fail": ["fedora-36", "centos-stream"],
                 }
             ),
             pytest.param(
@@ -40,7 +40,7 @@ class TestMetadata:
         assert result.upstream_pkg_name == "some_package"
         assert result.anytia_backend == "pypi"
         if result.targets_notify_on_fail:
-            assert result.targets_notify_on_fail == {"f36", "centos"}
+            assert result.targets_notify_on_fail == {"fedora-36", "centos-stream"}
 
     @pytest.mark.parametrize(
         "d, missing",
@@ -71,7 +71,7 @@ class TestMetadata:
     @pytest.mark.parametrize(
         "d, missing",
         [
-            pytest.param({"targets": ["f37", "f38"]}, "maintainers"),
+            pytest.param({"targets": ["fedora-37", "fedora-38"]}, "maintainers"),
             pytest.param(
                 {
                     "maintainers": [
@@ -83,7 +83,7 @@ class TestMetadata:
             pytest.param(
                 {
                     "maintainers": [{}],
-                    "targets": ["f33"],
+                    "targets": ["fedora-33"],
                 },
                 "maintainers.user",
             ),
@@ -160,13 +160,16 @@ class TestMetadata:
         )
         assert maintainers_cmp[1] == UserCmp(nick="random_guy", email="123@random.r")
 
-        assert metadata.targets == {"f36", "f37", "centos"}
+        assert metadata.targets == {"fedora-36", "fedora-37", "centos-stream"}
 
         if "autoupdate:" in metadata_config:
             assert metadata.autoupdate is not None
             assert metadata.autoupdate.upstream_pkg_name == "some_package"
             assert metadata.autoupdate.anytia_backend == "pypi"
-            assert metadata.autoupdate.targets_notify_on_fail == {"f36", "centos"}
+            assert metadata.autoupdate.targets_notify_on_fail == {
+                "fedora-36",
+                "centos-stream",
+            }
         else:
             assert metadata.autoupdate is None
 
@@ -192,7 +195,7 @@ class TestMetadata:
             repo_type=AlpaRepoType.branch,
             copr_owner="owner",
             copr_repo="repo",
-            targets={"f33"},
+            targets={"fedora-33"},
             arch={"aarch64"},
         )
 
@@ -203,9 +206,14 @@ class TestMetadata:
         metadata = MetadataConfig.get_config()
 
         if "targets:" in metadata_config:
-            assert metadata.targets == {"f33", "f36", "f37", "centos"}
+            assert metadata.targets == {
+                "fedora-33",
+                "fedora-36",
+                "fedora-37",
+                "centos-stream",
+            }
         else:
-            assert metadata.targets == {"f33"}
+            assert metadata.targets == {"fedora-33"}
 
         if "arch:" in metadata_config:
             assert metadata.arch == {"x86_64", "s390x", "aarch64"}
@@ -216,10 +224,15 @@ class TestMetadata:
         config = MetadataConfig(
             autoupdate=None,
             maintainers=[],
-            targets={"fedora-37", "centos"},
+            targets={"fedora-37", "centos-stream"},
             arch={"s390x", "aarch64"},
         )
 
         assert sorted(config.chroots) == sorted(
-            ["fedora-37-s390x", "centos-s390x", "fedora-37-aarch64", "centos-aarch64"]
+            [
+                "fedora-37-s390x",
+                "centos-stream-s390x",
+                "fedora-37-aarch64",
+                "centos-stream-aarch64",
+            ]
         )
