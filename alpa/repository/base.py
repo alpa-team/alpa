@@ -5,6 +5,7 @@ repository.
 import logging
 import subprocess
 from abc import ABC, abstractmethod
+from json import dumps
 from os import getcwd
 from pathlib import Path
 from typing import Optional, Iterable
@@ -19,6 +20,10 @@ from alpa.constants import (
     ALPA_FEAT_BRANCH_PREFIX,
     ORIGIN_NAME,
     UPSTREAM_NAME,
+    RequestEnum,
+    REQUEST_LABEL,
+    DELETE_PACKAGE_REQUEST_TITLE,
+    CREATE_PACKAGE_REQUEST_TITLE,
 )
 from alpa.gh import GithubAPI, GithubRepo
 from alpa.git import GitCMD
@@ -237,7 +242,7 @@ class LocalRepo(ABC):
     def get_history_of_branch(self, branch: str, params: list[str]) -> str:
         return self.git_cmd(["log", "--decorate", "--graph"] + params + [branch]).stdout
 
-    def commit(self, message: str, pre_commit: bool) -> bool:
+    def commit(self, message: str) -> bool:
         packit_conf = Packit(self.package)
         if not packit_conf.packit_config_file_exists():
             packit_conf.create_packit_config()
@@ -321,13 +326,29 @@ class AlpaRepo(LocalRepo):
     def create_package(self, package: str) -> None:
         pass
 
-    @abstractmethod
-    def request_package(self, package_name: str) -> None:
-        pass
+    def _request_package_action(self, request_type: RequestEnum, pkg: str) -> None:
+        ensured_upstream = self.gh_repo.get_root_repo()
+        upstream_namespace = ensured_upstream.namespace
+        issue_repo = self.gh_api.get_repo(upstream_namespace, self.gh_repo.repo_name)
 
-    @abstractmethod
+        if request_type == RequestEnum.delete:
+            title = DELETE_PACKAGE_REQUEST_TITLE.format(package_name=pkg)
+        else:
+            title = CREATE_PACKAGE_REQUEST_TITLE.format(package_name=pkg)
+
+        body = {
+            "request_type": request_type,
+            "user": self.gh_api.gh_user,
+            "package": pkg,
+        }
+        issue = issue_repo.create_issue(title, dumps(body))
+        issue.add_to_labels(REQUEST_LABEL)
+
+    def request_package(self, package_name: str) -> None:
+        self._request_package_action(RequestEnum.create, package_name)
+
     def request_package_delete(self, package: str) -> None:
-        pass
+        self._request_package_action(RequestEnum.delete, package)
 
     @staticmethod
     def _prepare_cloned_repo(where_to_clone: str, gh_repo: GithubRepo) -> None:

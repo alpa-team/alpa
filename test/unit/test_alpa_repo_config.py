@@ -85,7 +85,7 @@ class TestAlpaRepoConfig:
             pytest.param(ALPA_CONFIG_MANDATORY_KEYS, False),
         ],
     )
-    @patch.object(AlpaRepoConfig, "_load_alpa_config")
+    @patch.object(AlpaRepoConfig, "get_config")
     def test_content_in_config_file(
         self, mock_load_alpa_config, alpa_config, everything
     ):
@@ -99,7 +99,7 @@ class TestAlpaRepoConfig:
         assert config.copr_repo == "alpa-repo"
         if everything:
             assert config.allow_foreign_contributing
-            assert config.targets == {"f32"}
+            assert config.targets == {"fedora-32"}
             assert config.arch == {"aarch64"}
         else:
             assert not config.allow_foreign_contributing

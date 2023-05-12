@@ -3,6 +3,7 @@ IMAGE_NAME=alpa-test
 CONTAINER_ENGINE ?= $(shell command -v podman 2> /dev/null || echo docker)
 
 
+# regenerate new image when needed
 build-image:
 	$(CONTAINER_ENGINE) build --rm --tag $(IMAGE_NAME) -f Containerfile
 
@@ -12,7 +13,7 @@ enter-image:
 
 
 check-tests:
-	poetry shell && pytest -vvv test/
+	$(CONTAINER_ENGINE) run -ti $(IMAGE_NAME) bash -c "poetry run pytest -vvv test/"
 
 
 check-install:
@@ -23,5 +24,7 @@ check-install:
 check: check-install check-tests
 
 
-container-check: build-image
-	$(CONTAINER_ENGINE) run -ti $(IMAGE_NAME) make check
+ci-check-install: build-image check-install
+
+
+ci-check-tests: build-image check-tests

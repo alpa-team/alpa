@@ -52,13 +52,12 @@ def switch(name: str) -> None:
     default="",
     help="Your commit message not longer than 80 characters.",
 )
-@click.option("-n", "--no-verify", is_flag=True, help="Do not run pre-commit")
-def commit(message: str, no_verify: bool) -> None:
+def commit(message: str) -> None:
     """Commit your changes in your package's repository"""
     if len(message) > 80:
         raise ClickException("Message longer than 80 characters")
 
-    LocalRepoBranch(Path(getcwd())).commit(message, not no_verify)
+    LocalRepoBranch(Path(getcwd())).commit(message)
 
 
 @click.command("add")

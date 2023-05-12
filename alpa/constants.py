@@ -37,15 +37,14 @@ METADATA_FILE_NAMES = [
 ALPA_CONFIG_FILE_NAMES = [".alpa.yaml", ".alpa.yml", "alpa.yaml", "alpa.yml"]
 
 REQUEST_LABEL = "request"
+CREATE_PACKAGE_REQUEST_TITLE = (
+    "[alpa request-new-package] New request to create a package {package_name}"
+)
+DELETE_PACKAGE_REQUEST_TITLE = (
+    "[alpa delete-package] New request to delete a package {package_name}"
+)
 
 
-class PackageRequest(str, Enum):
-    TITLE = "[alpa request-new-package] New request for package {package_name}"
-    BODY = "@{user} requested {package_name}"
-    LABEL = REQUEST_LABEL
-
-
-class DeleteRequest(str, Enum):
-    TITLE = "[alpa delete-package] New request for deleting package {package_name}"
-    BODY = "@{user} requested to delete {package_name}"
-    LABEL = REQUEST_LABEL
+class RequestEnum(str, Enum):
+    delete = "delete"
+    create = "create"
