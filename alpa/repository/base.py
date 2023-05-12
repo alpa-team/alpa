@@ -237,7 +237,7 @@ class LocalRepo(ABC):
     def get_history_of_branch(self, branch: str, params: list[str]) -> str:
         return self.git_cmd(["log", "--decorate", "--graph"] + params + [branch]).stdout
 
-    def commit(self, message: str, pre_commit: bool) -> bool:
+    def commit(self, message: str) -> bool:
         packit_conf = Packit(self.package)
         if not packit_conf.packit_config_file_exists():
             packit_conf.create_packit_config()
