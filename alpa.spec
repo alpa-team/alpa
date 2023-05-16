@@ -1,10 +1,10 @@
 Name:           alpa
-Version:        0.10.0
+Version:        1.0.0
 Release:        1%{?dist}
 Summary:        Integration tool with Alpa repository
 
 License:        GPLv3
-URL:            https://github.com/alpa-team/alpa
+URL:            https://github.com/alpa-team/%{name}
 Source0:        %{url}/archive/refs/tags/%{version}.tar.gz
 
 BuildArch:      noarch
@@ -48,4 +48,4 @@ Requires:       pre-commit
 
 %changelog
 * Sat Mar 04 2023 Jiri Kyjovsky <j1.kyjovsky@gmail.com>
-- Initial package 0.1.0
+- Initial package 1.0.0
