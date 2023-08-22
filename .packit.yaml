@@ -8,8 +8,6 @@ jobs:
     trigger: pull_request
     targets:
       - fedora-all
-    owner: "alpa-team"
-    project: "alpa-pull-requests"
 
   - job: copr_build
     trigger: commit
