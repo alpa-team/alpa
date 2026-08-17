@@ -1,6 +1,7 @@
 """
 Class for local cli config
 """
+
 import logging
 from os.path import isfile
 from pathlib import Path
@@ -9,7 +10,6 @@ from typing import Optional
 from yaml import safe_load
 
 from alpa.constants import CONFIG_FILE_LOCATIONS
-
 
 logger = logging.getLogger(__name__)
 

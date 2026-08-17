@@ -1,6 +1,5 @@
 from enum import Enum
 
-
 UPSTREAM_NAME = "upstream"
 ORIGIN_NAME = "origin"
 MAIN_BRANCH = "main"
