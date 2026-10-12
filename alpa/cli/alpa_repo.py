@@ -2,14 +2,12 @@
 These commands need GH API token.
 """
 
-
 from os import getcwd
 from pathlib import Path
 
 import click
 
 from alpa.repository.branch import AlpaRepoBranch
-
 
 pkg_name = click.argument("name", type=str)
 
