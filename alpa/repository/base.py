@@ -2,6 +2,7 @@
 Set of commands that helps with integration of Alpa
 repository.
 """
+
 import logging
 import subprocess
 from abc import ABC, abstractmethod
@@ -33,7 +34,6 @@ from alpa.messages import (
     CLONED_REPO_IS_FORK,
     NO_PERMISSION_FOR_ALPA_REPO,
 )
-
 
 logger = logging.getLogger(__name__)
 
