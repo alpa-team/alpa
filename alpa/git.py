@@ -1,12 +1,12 @@
 """
 Wrapper around git cmd using subprocess
 """
+
 import asyncio
 import logging
 import subprocess
 from dataclasses import dataclass
 from typing import Optional
-
 
 logger = logging.getLogger(__name__)
 

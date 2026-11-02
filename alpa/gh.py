@@ -1,6 +1,7 @@
 """
 Wrapper aroung pygithub API since the documentation is awful..
 """
+
 import logging
 from os import getenv
 from typing import Optional
@@ -12,7 +13,6 @@ from github import Github, Issue, PullRequest, UnknownObjectException
 from alpa.config.alpa_local import AlpaLocalConfig
 from alpa.constants import GH_API_TOKEN_NAME, GH_WRITE_ACCESS
 from alpa.messages import NO_GH_API_KEY_FOUND, RETURNING_CLONE_URL_MSG
-
 
 logger = logging.getLogger(__name__)
 
